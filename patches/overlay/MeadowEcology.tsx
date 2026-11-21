@@ -7,7 +7,6 @@ import {solar} from '@/solar';
 const lowQuality=new URLSearchParams(window.location.search).get('quality')==='low';
 const coarse=window.matchMedia('(pointer:coarse)').matches;
 function rand(seed:number){let s=seed>>>0;return ()=>{s=(1664525*s+1013904223)>>>0;return s/4294967296;};}
-type FlowerSite={x:number;z:number;y:number;h:number;phase:number;angle:number};
 
 /** Three instanced meshes for a meadow of daisies; no individual React objects. */
 function Daisies(){
