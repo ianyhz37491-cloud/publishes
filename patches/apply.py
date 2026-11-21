@@ -141,8 +141,8 @@ edit("src/components/GrassField.tsx",
         };
     },[gl]);
     useEffect(() => {
-        return () => geometry.dispose();
-    }, [geometry]);""")
+        return ()=>{geometry.dispose();wakeTexture.dispose();};
+    }, [geometry,wakeTexture]);""")
 edit("src/components/GrassField.tsx",
     "            shader.uniforms.uTurbAmount.value = wind.turbAmount;",
     """            shader.uniforms.uTurbAmount.value = wind.turbAmount;
