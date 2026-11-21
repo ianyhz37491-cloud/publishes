@@ -93,7 +93,8 @@ edit("src/components/GrassField.tsx",
     const ray=useRef(new THREE.Raycaster());
     const hit=useRef(new THREE.Vector3());
     const pointer=useRef(new THREE.Vector2(1000,1000));
-    const strength=useRef(0);\n    const previousPointer=useRef(new THREE.Vector2(1000,1000));
+    const strength=useRef(0);
+    const previousPointer=useRef(new THREE.Vector2(1000,1000));
     const cursorParams=useControls('Cursor grass',{
         enabled:true,
         radius:{value:0.65,min:0.2,max:1.7},
