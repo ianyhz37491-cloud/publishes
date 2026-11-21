@@ -1,4 +1,5 @@
 import {useEffect,useRef} from 'react';
+import {createPortal} from 'react-dom';
 import type {ProjectRecord} from '@/projectCatalog';
 
 type Props={
@@ -23,7 +24,7 @@ export function ProjectSpotlight({project,onClose,onHover,onLeave}:Props){
   if(!project||project.status!=='published')return null;
   const photo=new URL(project.thumbnail||'',document.baseURI).href;
   const explore=project.liveUrl;
-  return <div className="project-spotlight-scrim" onClick={onClose}>
+  return createPortal(<div className="project-spotlight-scrim" onClick={onClose}>
     <section className="project-spotlight" role="dialog" aria-modal="false"
       aria-label={`Preview ${project.id}`}
       ref={panel}
@@ -67,5 +68,5 @@ export function ProjectSpotlight({project,onClose,onHover,onLeave}:Props){
         </div>
       </div>
     </section>
-  </div>;
+  </div>,document.body);
 }
