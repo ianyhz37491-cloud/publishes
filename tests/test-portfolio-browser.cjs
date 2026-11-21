@@ -46,6 +46,29 @@ async function check(browser,name,device){
   await entry.click();
   await page.waitForURL(/#\/work$/);
   assert.equal(await page.locator('.work-tile').count(),12);
+  assert.equal(await page.locator('.work-tile-published').count(),1,'exactly one published slot should be visible');
+  assert.equal(await page.locator('.work-tile-marker').count(),11,'all other slots retain visible question marks');
+  assert(await page.locator('.work-tile-marker').first().innerText() === '?','unpublished placeholder must be a question mark');
+  const preview=page.getByRole('button',{name:'Preview project SYS-001'});
+  const image=preview.locator('img');
+  await image.waitFor();
+  assert(await image.evaluate(node=>node instanceof HTMLImageElement && node.complete && node.naturalWidth>100),
+    'photo preview must load a real licensed photograph');
+  if(!device.hasTouch){
+    await preview.hover();
+  }else{
+    await preview.click();
+  }
+  const popup=page.getByRole('dialog',{name:'Preview SYS-001'});
+  await popup.waitFor();
+  assert(await popup.isVisible(),'featured work must enlarge into a centred modal');
+  assert.equal(await popup.locator('img').count(),2,'two image-depth planes must render');
+  assert.equal(await popup.locator('a[href^="https://"]').count(),1,'spotlight must link to a real deployment');
+  assert.equal(await popup.locator('a').getAttribute('href'),'https://margin-language-reader.onrender.com/');
+  assert(!(await popup.innerText()).toLowerCase().includes('margin'),'working title must remain hidden until naming is finalized');
+  await page.screenshot({path:path.join(folder,name+'-spotlight.png')});
+  await page.keyboard.press('Escape');
+  await popup.waitFor({state:'detached'});
   const research=page.getByRole('button',{name:'RESEARCH',exact:true});
   assert(await page.getByRole('button',{name:'Hear the landscape'}).isVisible(),'sound stays visible in catalogue');
   const markerBefore=await page.locator('.filter-indicator').getAttribute('style');
