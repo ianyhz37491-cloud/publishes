@@ -78,6 +78,12 @@ for a,b in [
 ]:
     edit("src/components/WindSystem.tsx",a,b)
 
+# Preserve the full 160k-blade desktop look, but prevent mobile from instancing
+# the same dense field at expensive mobile GPU resolutions.
+edit("src/components/GrassField.tsx",
+    "const BLADES_PER_ROW = 400;",
+    "const BLADES_PER_ROW = window.matchMedia('(pointer:coarse)').matches ? 280 : 400;")
+
 edit("src/components/GrassField.tsx",
     "import { useFrame } from '@react-three/fiber';",
     "import { useFrame, useThree } from '@react-three/fiber';")
