@@ -63,8 +63,8 @@ section("src/shaders/grass.frag",
     """    // Restrained natural greens. Remove the original strong three-biome blotches.
     float perBlade = fract(sin(dot(floor(vWorldPos.xz*41.0),vec2(127.1,311.7)))*43758.5453);
     float variation = (1.0+clamp(vBiomeNoise,-1.0,1.0)*0.045)*mix(0.965,1.035,perBlade);
-    vec3 baseRoot=vec3(0.09,0.24,0.065);
-    vec3 baseTip=vec3(0.35,0.61,0.195);
+    vec3 baseRoot=vec3(0.09,0.22,0.079);
+    vec3 baseTip=vec3(0.31,0.53,0.20);
     vec3 baseColorAccent=mix(baseRoot,baseTip,pow(vUv.y,0.83))*variation;
     baseColorAccent=mix(baseColorAccent,vec3(0.28,0.38,0.12),vAccent*vUv.y*0.24);""")
 edit("src/shaders/grass.frag",
