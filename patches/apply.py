@@ -85,7 +85,7 @@ for a,b in [
 # the same dense field at expensive mobile GPU resolutions.
 edit("src/components/GrassField.tsx",
     "const BLADES_PER_ROW = 400;",
-    "const BLADES_PER_ROW = window.matchMedia('(pointer:coarse)').matches ? 280 : 400;")
+    "const BLADES_PER_ROW = new URLSearchParams(window.location.search).get('quality')==='low' ? 56 : window.matchMedia('(pointer:coarse)').matches ? 280 : 400;")
 
 edit("src/components/GrassField.tsx",
     "import { useFrame } from '@react-three/fiber';",
