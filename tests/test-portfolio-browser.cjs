@@ -43,13 +43,15 @@ async function check(browser,name,device){
   await page.waitForURL(/#\/work$/);
   assert.equal(await page.locator('.work-tile').count(),12,'hard refresh must restore work route');
   const field=page.getByRole('button',{name:/Enter field/});
-  if(await field.isEnabled()){
+  const fieldWasAvailable=await field.isEnabled();
+  if(fieldWasAvailable){
     await field.click();
     await page.waitForURL(/#\/field$/);
     const settings=page.getByRole('button',{name:/Field settings/});
     await settings.click();
     await page.getByLabel('Light').selectOption('Night');
     assert.equal(await page.getByLabel('Light').inputValue(),'Night');
+    await page.getByText('Currently night').waitFor({timeout:10000});
     assert(await page.getByRole('button',{name:'Resume lighting'}).isVisible());
     await page.screenshot({path:path.join(folder,name+'-field.png')});
     await page.getByRole('button',{name:/Return to work/}).click();
@@ -61,7 +63,7 @@ async function check(browser,name,device){
   await page.goBack();
   assert(['#/field',''].includes(new URL(page.url()).hash),'back must restore a previous hash route');
   assert.equal(errors.length,0,'uncaught browser errors: '+errors.join(' | '));
-  console.log('PASS browser interactions '+name+' (field enabled: '+await field.isEnabled().catch(()=>false)+')');
+  console.log('PASS browser interactions '+name+' (interactive WebGL field tested: '+fieldWasAvailable+')');
   await context.close();
 }
 (async()=>{
