@@ -32,7 +32,7 @@ export function SerenitySound(){
   async function start(){
     try{
       if(tracks.current.length===0){
-        const base=new URL(import.meta.env.BASE_URL,window.location.origin);
+        const base=new URL('.',document.baseURI);
         tracks.current=(Object.keys(SOURCES) as TrackId[]).map(id=>{
           const url=new URL(SOURCES[id],base).href;
           const element=new Audio(url);
