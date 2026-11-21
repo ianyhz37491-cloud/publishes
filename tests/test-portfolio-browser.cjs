@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const {chromium}=require('playwright');
+const {chromium}=require(path.resolve(process.cwd(),'node_modules/playwright'));
 const base='http://127.0.0.1:4173/publishes/';
 const folder=path.resolve(process.cwd(),'../browser-artifacts');
 fs.mkdirSync(folder,{recursive:true});
