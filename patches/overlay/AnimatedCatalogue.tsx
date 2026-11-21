@@ -1,17 +1,37 @@
 import {useCallback,useEffect,useLayoutEffect,useRef,useState} from 'react';
+import {ProjectSpotlight} from '@/ProjectSpotlight';
 import {CATEGORIES,filterProjects,type CategoryFilter,type ProjectRecord} from '@/projectCatalog';
 
 const MOTION='cubic-bezier(.2,.73,.18,1)';
 const motionAllowed=()=>!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function ProjectTile({project}:{project:ProjectRecord}){
-  return <li className="work-tile" data-project-id={project.id}
-    aria-label={`${project.id}, reserved empty slot`}>
-    <div className="work-tile-image" aria-hidden="true"><span className="work-tile-marker">—</span></div>
-    <div className="work-tile-caption">
-      <span className="work-code">{project.id}</span>
-      <span className="work-empty">UNPUBLISHED</span>
-    </div>
+function ProjectTile({project,onPreview,onLeave}:{
+  project:ProjectRecord;
+  onPreview:(project:ProjectRecord)=>void;
+  onLeave:()=>void;
+}){
+  const published=project.status==='published';
+  return <li className={`work-tile ${published?'work-tile-published':''}`}
+    data-project-id={project.id}
+    aria-label={published?`${project.id}, published reading environment`:`${project.id}, reserved empty slot`}>
+    {published ? <button className="project-preview-trigger" type="button"
+      aria-label={`Preview project ${project.id}`}
+      onPointerEnter={e=>{if(e.pointerType==='mouse'||e.pointerType==='pen')onPreview(project);}}
+      onPointerLeave={onLeave}
+      onFocus={()=>onPreview(project)}
+      onClick={()=>onPreview(project)}>
+      <span className="work-tile-image work-tile-photo">
+        <img src={new URL(project.thumbnail||'',document.baseURI).href} alt="Sunlight falling on an open book" loading="lazy" />
+        <span className="work-tile-photo-overlay" aria-hidden="true">VIEW <span>↗</span></span>
+      </span>
+      <span className="work-tile-caption"><span className="work-code">{project.id}</span><span className="work-empty">EXPLORE ↗</span></span>
+    </button> : <>
+      <div className="work-tile-image" aria-hidden="true"><span className="work-tile-marker">?</span></div>
+      <div className="work-tile-caption">
+        <span className="work-code">{project.id}</span>
+        <span className="work-empty">UNPUBLISHED</span>
+      </div>
+    </>}
   </li>;
 }
 
@@ -52,9 +72,25 @@ export function AnimatedCatalogue(){
   const previouslyVisible=useRef(new Set<string>());
   const initialized=useRef(false);
   const animations=useRef<Animation[]>([]);
+  const [featured,setFeatured]=useState<ProjectRecord|null>(null);
+  const previewTimeout=useRef<number|undefined>(undefined);
+  const openPreview=useCallback((project:ProjectRecord)=>{
+    if(previewTimeout.current!==undefined)clearTimeout(previewTimeout.current);
+    setFeatured(project);
+  },[]);
+  const cancelPreview=useCallback(()=>{
+    if(previewTimeout.current!==undefined)clearTimeout(previewTimeout.current);
+    previewTimeout.current=window.setTimeout(()=>setFeatured(null),430);
+  },[]);
+  const closePreview=useCallback(()=>{
+    if(previewTimeout.current!==undefined)clearTimeout(previewTimeout.current);
+    previewTimeout.current=undefined;
+    setFeatured(null);
+  },[]);
 
   const changeFilter=useCallback((next:CategoryFilter)=>{
     if(next===filter)return;
+    closePreview();
     const items=grid.current?.querySelectorAll<HTMLElement>('[data-project-id]');
     oldRects.current.clear();
     previouslyVisible.current.clear();
@@ -92,7 +128,7 @@ export function AnimatedCatalogue(){
       });
     }
     setFilter(next);
-  },[filter]);
+  },[filter,closePreview]);
 
   useLayoutEffect(()=>{
     if(!initialized.current){initialized.current=true;return;}
@@ -120,7 +156,10 @@ export function AnimatedCatalogue(){
     oldRects.current.clear();
   },[filter]);
 
-  useEffect(()=>()=>{animations.current.forEach(a=>a.cancel());},[]);
+  useEffect(()=>()=>{
+    animations.current.forEach(a=>a.cancel());
+    if(previewTimeout.current!==undefined)clearTimeout(previewTimeout.current);
+  },[]);
 
   const projects=filterProjects(filter);
   return <>
@@ -130,9 +169,10 @@ export function AnimatedCatalogue(){
     </div>
     <div className="work-grid-frame">
       <ol ref={grid} className="work-grid" aria-label={`${projects.length} reserved project slots`}>
-        {projects.map(project=><ProjectTile project={project} key={project.id}/>)}
+        {projects.map(project=><ProjectTile project={project} key={project.id} onPreview={openPreview} onLeave={cancelPreview}/>)}
       </ol>
       <div ref={ghostLayer} className="work-grid-ghosts" aria-hidden="true"/>
     </div>
+    <ProjectSpotlight project={featured} onClose={closePreview} onHover={openPreview} onLeave={cancelPreview}/>
   </>;
 }
