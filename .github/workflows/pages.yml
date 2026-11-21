@@ -46,6 +46,10 @@ jobs:
           npm run build -- --base /publishes/
           test -f dist/index.html
 
+      - name: Test Serenity mood timing and continuous lighting
+        working-directory: zephyr
+        run: node ../tests/test-serenity.cjs
+
       - name: Install verified CC0 countryside field recordings
         run: |
           mkdir -p zephyr/dist/licenses zephyr/dist/audio
