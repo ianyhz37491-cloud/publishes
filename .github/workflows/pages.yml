@@ -55,6 +55,22 @@ jobs:
           PY
           cp PHOTO_SOURCES.md zephyr/public/media/PHOTO_SOURCES.md
 
+      - name: Produce photographic depth layers from licensed meadow photograph
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check \
+            "numpy==2.2.6" "opencv-python-headless==4.11.0.86" "Pillow==11.2.1"
+          mkdir -p /tmp/serenity-photo-source zephyr/public/media/meadow-depth
+          curl --fail --location --retry 3 --max-time 75 \
+            'https://images.unsplash.com/photo-1644147184714-5a79cbf24333?fm=jpg&fit=crop&w=2400&q=84' \
+            -o /tmp/serenity-photo-source/meadow.jpg
+          python3 patches/build-photo-depth.py \
+            /tmp/serenity-photo-source/meadow.jpg zephyr/public/media/meadow-depth
+          test -s zephyr/public/media/meadow-depth/background.webp
+          test -s zephyr/public/media/meadow-depth/stems.webp
+          test -s zephyr/public/media/meadow-depth/near.webp
+          test -s zephyr/public/media/meadow-depth/matte.png
+          cp PHOTO_SOURCES.md zephyr/public/media/meadow-depth/SOURCES.md
+
       - name: Install dependencies and compile production site
         working-directory: zephyr
         run: |
@@ -113,6 +129,16 @@ jobs:
             sleep 1
           done
           node ../tests/test-portfolio-browser.cjs
+
+      - name: Upload photographic depth matte and provenance for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: photographic-depth-asset-evidence
+          path: |
+            zephyr/public/media/meadow-depth/matte.png
+            zephyr/public/media/meadow-depth/provenance.json
+          if-no-files-found: ignore
 
       - name: Upload browser QA screenshots
         if: always()
