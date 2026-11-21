@@ -142,6 +142,8 @@ async function check(browser,name,device){
     await photo.getByRole('button',{name:'Show object'}).click();
     assert.equal(await photo.locator('.photo-depth-orb').count(),1,'object must return');
     if(!device.hasTouch){
+      await page.emulateMedia({reducedMotion:'no-preference'});
+      await page.waitForTimeout(180);
       await page.mouse.move(150,220);
       await page.waitForTimeout(500);
       const px=await photo.locator('.photo-depth-stage').evaluate(
