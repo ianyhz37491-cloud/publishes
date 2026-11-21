@@ -10,10 +10,22 @@ async function check(browser,name,device){
   const context=await browser.newContext({...device,acceptDownloads:false,reducedMotion:'reduce'});
   const page=await context.newPage();
   const errors=[];
-  page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(base,{waitUntil:'domcontentloaded'});
+  const network=[];
+  page.on('pageerror',e=>errors.push(e.stack||e.message));
+  page.on('response',r=>{if(r.status()>=400)network.push(r.status()+': '+r.url());});
+  const response=await page.goto(base,{waitUntil:'domcontentloaded'});
+  console.log(name+' initial URL='+page.url()+' http='+response?.status());
   const entry=page.getByRole('button',{name:'Enter interactive portfolio and view projects'});
-  await entry.waitFor();
+  try{await entry.waitFor({timeout:15000});}
+  catch(error){
+    console.error('DIAGNOSTIC route='+page.url(), 'title='+await page.title(),
+      'body='+JSON.stringify((await page.locator('body').innerText()).slice(0,1500)),
+      'rootHTML='+JSON.stringify((await page.locator('#root').innerHTML()).slice(0,1300)),
+      'page errors='+JSON.stringify(errors.slice(0,6)),
+      'network='+JSON.stringify(network.slice(0,10)));
+    await page.screenshot({path:path.join(folder,name+'-failed.png'),timeout:15000});
+    throw error;
+  }
   assert(await entry.isVisible(),'landing must be visible before WebGL loads');
   assert.equal(await page.locator('.serenity-heading').count(),0,'legacy header must be removed');
   await page.screenshot({path:path.join(folder,name+'-landing.png')});
