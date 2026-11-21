@@ -25,6 +25,7 @@ export const solar={
   workSoundLevel:0.24,
   workMuffle:true,
   weather:'clear' as MeadowWeather,
+  weatherMode:'auto' as MeadowWeather|'auto',
   weatherMix:0,
   rainMix:0,
 };
