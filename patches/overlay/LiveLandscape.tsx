@@ -6,13 +6,14 @@ import {GenerateTerrain} from '@/components/Terrain';
 import {GrassField} from '@/components/GrassField';
 import {WindSystem} from '@/components/WindSystem';
 import {SerenityAtmosphere} from '@/SerenityAtmosphere';
-import {PortfolioShell,routeFromHash,type PortfolioRoute} from '@/PortfolioShell';
+import {PortfolioShell} from '@/PortfolioShell';
+import {routeFromHash,type PortfolioRoute} from '@/portfolioRoutes';
 import '@/live.css';
 
 function hasWebGL(){
   try{
     const canvas=document.createElement('canvas');
-    return Boolean(canvas.getContext('webgl2')||canvas.getContext('webgl'));
+    return Boolean(canvas.getContext('webgl2'));
   }catch{return false;}
 }
 
