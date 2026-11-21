@@ -29,9 +29,9 @@ edit("src/main.tsx","import App from '@/App.tsx';","import App from '@/LiveLands
 
 # Preserve upstream geometry, terrain, and the entire gust noise field.
 for old,new in [
-    ("const SWAY_FREQ = 2.0;","const SWAY_FREQ = 1.22;"),
-    ("const SWAY_OSCIL_WEIGHT = 0.4;","const SWAY_OSCIL_WEIGHT = 0.24;"),
-    ("const SWAY_LEAN_WEIGHT = 0.6;","const SWAY_LEAN_WEIGHT = 0.76;")
+    ("const float SWAY_FREQ = 2.0;","const float SWAY_FREQ = 1.22;"),
+    ("const float SWAY_OSCIL_WEIGHT = 0.4;","const float SWAY_OSCIL_WEIGHT = 0.24;"),
+    ("const float SWAY_LEAN_WEIGHT = 0.6;","const float SWAY_LEAN_WEIGHT = 0.76;")
 ]:
     edit("src/shaders/grass.vert",old,new)
 
