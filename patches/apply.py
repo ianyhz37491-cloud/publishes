@@ -235,6 +235,7 @@ files = {
     "src/portfolioRoutes.ts": "overlay/portfolioRoutes.ts",
     "src/AnimatedCatalogue.tsx": "overlay/AnimatedCatalogue.tsx",
     "src/ProjectSpotlight.tsx": "overlay/ProjectSpotlight.tsx",
+    "src/PhotographicMeadow.tsx": "overlay/PhotographicMeadow.tsx",
     "src/MeadowWorld.tsx": "overlay/MeadowWorld.tsx",
     "src/MeadowEcology.tsx": "overlay/MeadowEcology.tsx",
 }

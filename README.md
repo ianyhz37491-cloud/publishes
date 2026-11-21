@@ -20,7 +20,15 @@ The catalogue uses an original studio-style layout; it does not copy the screens
 
 Desktop pointers reveal the preview on hover, touch users tap the card, keyboard focus opens it, and Escape or close dismisses it. Dismissing while the pointer is still over a card does not repeatedly reopen the preview and block the filters. The original category underline and FLIP animation remain intact.
 
-The full meadow remains Zephyr-based WebGL. A photographic scene with a ball disappearing **behind actual photographed grass** requires tight foreground segmentation, layered depth, inpainting of previously hidden regions, and camera bounds. The current project-photo parallax demonstrates a small version of the layering technique, **not a complete photographic-meadow reconstruction**. See [research follow-up](docs/PHOTOGRAPHIC_DEPTH_PIPELINE.md).
+## Photographic meadow — opt-in study
+
+In Field mode, choose **Photographic study** to enter a separate, fixed-vantage 2.5D landscape based on a licensed meadow photograph (see [PHOTO_SOURCES.md](PHOTO_SOURCES.md)). This does **not** replace the original WebGL free roam or become the default landing automatically.
+
+A build-time Python/OpenCV pipeline derives **real photographed grass-edge alpha mattes**, exports independent distant-stem and near-field layers, and conservatively inpaints fine, previously occluded background areas. Pointer movement produces limited relative parallax. A subtle, optional refractive-looking object moves between the image layers so real photographed grasses visibly pass in front of it; **Hide object** tests the landscape alone. The existing opt-in ambient player can respond to photo-mode motion. Reduced-motion preference disables parallax and animation. Returning to **3D meadow** restores the original scene.
+
+This experiment is **not** a metrically correct depth map, 360° landscape, physically simulated glass, or neural 3D reconstruction. A single photo cannot provide the actual hidden scene geometry. The hard visual-release gate is inspected desktop/mobile screenshots and, ideally, physical Safari review; a successful build and alpha-mask statistics are insufficient. Read [the photographic-depth research and acceptance record](docs/PHOTOGRAPHIC_DEPTH_PIPELINE.md).
+
+
 
 ## Environmental rendering
 
