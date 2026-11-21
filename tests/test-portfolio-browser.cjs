@@ -9,6 +9,7 @@ fs.mkdirSync(folder,{recursive:true});
 async function check(browser,name,device){
   const context=await browser.newContext({...device,acceptDownloads:false,reducedMotion:'reduce'});
   const page=await context.newPage();
+  page.setDefaultTimeout(18000);
   const errors=[];
   const network=[];
   page.on('pageerror',e=>errors.push(e.stack||e.message));
@@ -54,10 +55,13 @@ async function check(browser,name,device){
   await image.waitFor();
   assert(await image.evaluate(node=>node instanceof HTMLImageElement && node.complete && node.naturalWidth>100),
     'photo preview must load a real licensed photograph');
-  if(!device.hasTouch){
-    await preview.hover();
+  const hotspot=await preview.boundingBox();
+  assert(hotspot && hotspot.width>0,'project preview must be reachable');
+  if(device.hasTouch){
+    await page.touchscreen.tap(hotspot.x+hotspot.width/2,hotspot.y+hotspot.height/2);
   }else{
-    await preview.click();
+    // Playwright hover() retries while overlay steals the mouse target.
+    await page.mouse.move(hotspot.x+hotspot.width/2,hotspot.y+hotspot.height/2);
   }
   const popup=page.getByRole('dialog',{name:'Preview SYS-001'});
   await popup.waitFor();
