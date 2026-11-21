@@ -130,6 +130,27 @@ jobs:
           done
           node ../tests/test-portfolio-browser.cjs
 
+      - name: Emit reduced photographic previews for visual QA
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import base64, io
+          from pathlib import Path
+          from PIL import Image
+          for name in ('desktop-photographic-depth.png','mobile-photographic-depth.png'):
+              path=Path('browser-artifacts')/name
+              if not path.exists():
+                  print('PHOTO_REVIEW_MISSING='+name,flush=True)
+                  continue
+              with Image.open(path) as source:
+                  image=source.convert('RGB')
+              image.thumbnail((880,630),Image.Resampling.LANCZOS)
+              buf=io.BytesIO()
+              image.save(buf,format='JPEG',quality=68,optimize=True)
+              token=base64.b64encode(buf.getvalue()).decode('ascii')
+              print('PHOTO_REVIEW_'+name.replace('.png','').replace('-','_').upper()+'='+token,flush=True)
+          PY
+
       - name: Upload photographic depth matte and provenance for review
         if: always()
         uses: actions/upload-artifact@v4
