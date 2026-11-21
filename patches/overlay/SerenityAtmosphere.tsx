@@ -71,7 +71,7 @@ export function SerenityAtmosphere(){
     solar.weather=next;
     const cloudTarget=next==='clear'?0:next==='cloudy'?.52:next==='drizzle'?.72:1;
     const rainTarget=next==='drizzle'?.36:next==='rain'?1:0;
-    solar.weatherMix+=(cloudTarget-solar.weatherMix)*(1-Math.exp(-dt*.48));
+    solar.weatherMix+=(cloudTarget-solar.weatherMix)*(1-Math.exp(-dt*.86));
     solar.rainMix+=(rainTarget-solar.rainMix)*(1-Math.exp(-dt*.72));
 
     const sunrise=m.mood==='Sunrise'?Math.sin(Math.PI*m.progress):0;
@@ -82,8 +82,8 @@ export function SerenityAtmosphere(){
     if(sunrise>0){baseHorizon.lerp(sunriseHorizon,sunrise*.82);baseZenith.lerp(sunriseZenith,sunrise*.67);}
     if(sunset>0){baseHorizon.lerp(sunsetHorizon,sunset*.88);baseZenith.lerp(sunsetZenith,sunset*.74);}
     const overcast=solar.weatherMix*(1-m.darkness*.55);
-    horizon.copy(baseHorizon).lerp(stormHorizon,overcast*.78);
-    zenith.copy(baseZenith).lerp(stormZenith,overcast*.66);
+    horizon.copy(baseHorizon).lerp(stormHorizon,overcast*.93);
+    zenith.copy(baseZenith).lerp(stormZenith,overcast*.86);
     solar.skyHorizon.copy(horizon);
     solar.skyZenith.copy(zenith);
     solar.fogColor.copy(horizon).lerp(new THREE.Color('#668e8b'),.30);
@@ -145,6 +145,8 @@ export function SerenityAtmosphere(){
             vec3 warm=mix(vec3(.85,.93,1.0),vec3(1.0,.74,.46),uSunWarmth);
             sky=mix(sky,warm,clamp(halo*uSunStrength,0.0,.44));
             gl_FragColor=vec4(sky,1.0);
+            #include <tonemapping_fragment>
+            #include <colorspace_fragment>
           }`}/>
     </mesh>
     <Stars ref={stars} radius={110} depth={65} count={1250} factor={2.9} saturation={.04} fade speed={.04}/>
