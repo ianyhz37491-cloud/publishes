@@ -1,31 +1,40 @@
-# Serenity
+# Interactive portfolio / Serenity
 
-A quiet, interactive grassland built as a future vignette for an interactive portfolio.
+An editorial portfolio built around a living grassland. The landscape creates atmosphere; the work index remains directly accessible without playing a game.
 
-**[Open Serenity](https://ianyhz37491-cloud.github.io/publishes/)** · [Build and deployment](.github/workflows/pages.yml) · [Sound sources](AUDIO_SOURCES.md)
+**[Open the portfolio](https://ianyhz37491-cloud.github.io/publishes/)** · [CI / Pages deployment](.github/workflows/pages.yml) · [Sound and licence sources](AUDIO_SOURCES.md) · [Implementation status](docs/IMPLEMENTATION_STATUS.md)
 
-The scene is based on [Zephyr by rether](https://github.com/RetherSzu/zephyr) (MIT). It preserves Zephyr's instanced grass geometry and continuous wind-field shader rather than replacing them with abstract shapes or a bespoke nature engine.
+## Three routes
 
-## Experience
+- `#/ ` (without the space, `#/`) — centred italic **interactive portfolio** entry over the landscape. Click or tap the title/chevron, scroll down, swipe up, or use Enter/ArrowDown/PageDown to enter.
+- `#/work` — Yeezy-inspired editorial project index with responsive columns and working filters: ALL, SYSTEMS, EXPERIMENTS, RESEARCH and VISUAL.
+- `#/field` — interactive grassland, with collapsible controls for environmental sound/volume, sunlight mood, lighting pause, cycle duration, wind strength, reset camera and return to work.
 
-- **Four equal moods:** sunrise, daylight, sunset and night each occupy exactly one quarter of the cycle. The full cycle defaults to 10 seconds; easing, sun direction, lighting and ambience cross phase boundaries continuously.
-- **Pastoral styling:** close-to-ground rolling grass, restrained colour variation, slow gentle breeze and independently drifting clouds. The night landscape stays visible in cool blue light rather than going black.
-- **Interaction:** moving the cursor across the actual grass terrain gently pushes blades aside. A pause control freezes the solar progression but not the wind, clouds or nature sounds.
-- **Sound:** user-enabled, crossfaded CC0 field recordings of rustling vegetation, meadow insects, morning birds and nocturnal crickets. Cursor contact increases the field-rustle layer. No synthesized hiss or autoplay.
-- **Performance:** one GPU-instanced grass field; 160,000 blades on desktop, 78,400 on coarse-pointer devices, with capped device pixel ratio. No external landscape assets are required to render.
+These are hash routes so deep links, refresh and browser history work on GitHub Pages' static project path. The three states share **one persistent React Three Fiber Canvas** and a persistent ambient-audio component; opening a catalogue or returning from the field does not rebuild the environment.
 
-The user-supplied nature wallpaper is a visual mood reference, not a source asset. Preserve the airy composition, warm light and tranquil movement without copying copyrighted artwork or introducing distracting, low-quality procedural decoration.
+**Catalogue contents are intentionally not published yet.** The 12 prototype slots are clearly identified as unpublished. Their stable serial codes are not references to actual work. The typed [catalogue model](patches/overlay/projectCatalog.ts) is ready for later verified titles, images, descriptions, provenance and links, but none are invented here.
 
-## Repository
+## Landscape
 
-Pushes to `main` run [the Pages workflow](.github/workflows/pages.yml), which fetches upstream Zephyr at pinned commit `bd74c81efa0c49a8f8acc6cab41550dd2f0d95b0`, applies [the source patch](patches/apply.py), installs the [scene modules](patches/overlay), builds the public site and verifies that the deployed URL serves the application.
+The scene extends [Zephyr by rether](https://github.com/RetherSzu/zephyr) (MIT, pinned at `bd74c81efa0c49a8f8acc6cab41550dd2f0d95b0`). It preserves Zephyr's original instanced grass, shader wind, terrain and project licence. The shader colours, four-stage lighting cycle, independent clouds and opted-in CC0 ambient recordings are maintained.
 
-The two external audio repositories are also pinned by commit and each downloaded recording is checked against the known Git blob SHA before deployment. The provenance list is retained in the public website. The original [MIT licence](https://github.com/RetherSzu/zephyr/blob/main/LICENSE) is preserved.
+Cursor strokes in free roam now paint a small world-aligned **directional wake texture**. Its deflection flows along the entire sweep, decays smoothly and leaves each blade root anchored. The wake is composited with the original GPU wind—not a spherical cursor force or per-blade JavaScript animation. Pointer movement over the sky or catalogue cannot create grass strokes.
 
-## Verification and remaining work
+Typical scene density is 160,000 blades on desktop and 78,400 on coarse-pointer devices. The optional `?quality=low` query parameter deliberately reduces the scene to 56² blades for constrained rendering environments. It is used for browser integration QA; it is not evidence that full-density rendering meets a particular FPS target. An HTML/CSS scene poster keeps entry and the catalogue usable when WebGL2 is unavailable.
 
-The workflow runs [an executable timing test](tests/test-serenity.cjs) for four equal stages, continuous lighting, visible night and ambience weight calculations. It checks TypeScript/Vite compilation, audio file integrity, and public Pages HTML. A passing build **does not prove** that WebGL renders beautifully in Safari, that actual FPS meets a target, or that the audio mix is sonically convincing.
+The original audio sources remain integrity-checked by Git blobs in CI, have their provenance preserved publicly, and never autoplay.
 
-Before integrating it into a larger portfolio, evaluate the rendered night, sunrise colours, cloud silhouettes, pointer/drag interaction, seamless audio loops and Mac Safari/mobile performance. Mount the scene lazily when the Serenity feature is opened; dispose of its WebGL and audio resources when leaving. Keep sound opt-in. Avoid loading the full 3D scene on the portfolio homepage.
+## Source and verification
 
-This repo is public and contains no private project records.
+The repository [patches the pinned upstream source](patches/apply.py) at build time with the [portfolio overlay](patches/overlay). No second 3D engine was introduced.
+
+Every proposed release must pass:
+
+- Original Serenity model tests: four equal-length lighting moods and continuous transitions.
+- [Portfolio model tests](tests/test-portfolio.cjs): catalogue provenance, category filters, static routes, wake continuity/locality/decay.
+- [Desktop/mobile browser checks](tests/test-portfolio-browser.cjs): real landing interaction, filtering, deep-link refresh, history, free-roam control actions and screenshots on a reduced-density WebGL scene.
+- TypeScript/Vite production build, the audio file SHA checks and post-deployment Pages HTML checks.
+
+A green CI run does **not** certify exact full-quality Safari/macOS/iPhone visual fidelity, measured frame rate, physical-audio quality or the subjective realism of the wake. These require direct hardware review. The latest evidence and unresolved checks are in [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
+
+No private notes or unpublished actual project details are stored in this public repository.
