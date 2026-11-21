@@ -26,6 +26,9 @@ def section(rel, begin, end, replacement):
     p.write_text(src[:start]+replacement+src[finish:])
 
 edit("src/main.tsx","import App from '@/App.tsx';","import App from '@/LiveLandscape.tsx';")
+edit("index.html","<title>zephyr</title>", """<title>Serenity — Living Landscape</title>
+        <meta name="description" content="A quiet, interactive grassland with sunrise, daylight, sunset and moonlit night." />
+        <meta name="theme-color" content="#192d43" />""")
 
 # Preserve upstream geometry, terrain, and the entire gust noise field.
 for old,new in [
