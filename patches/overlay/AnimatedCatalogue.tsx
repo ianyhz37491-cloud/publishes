@@ -5,9 +5,11 @@ import {CATEGORIES,filterProjects,type CategoryFilter,type ProjectRecord} from '
 const MOTION='cubic-bezier(.2,.73,.18,1)';
 const motionAllowed=()=>!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function ProjectTile({project,onPreview}:{
+function ProjectTile({project,onPreview,onForcePreview,onExit}:{
   project:ProjectRecord;
   onPreview:(project:ProjectRecord)=>void;
+  onForcePreview:(project:ProjectRecord)=>void;
+  onExit:()=>void;
 }){
   const published=project.status==='published';
   return <li className={`work-tile ${published?'work-tile-published':''}`}
@@ -16,8 +18,9 @@ function ProjectTile({project,onPreview}:{
     {published ? <button className="project-preview-trigger" type="button"
       aria-label={`Preview project ${project.id}`}
       onPointerEnter={e=>{if(e.pointerType==='mouse'||e.pointerType==='pen')onPreview(project);}}
+      onPointerLeave={onExit}
       onFocus={()=>onPreview(project)}
-      onClick={()=>onPreview(project)}>
+      onClick={()=>onForcePreview(project)}>
       <span className="work-tile-image work-tile-photo">
         <img src={new URL(project.thumbnail||'',document.baseURI).href} alt="Sunlight falling on an open book" loading="lazy" />
         <span className="work-tile-photo-overlay" aria-hidden="true">VIEW <span>↗</span></span>
@@ -72,17 +75,31 @@ export function AnimatedCatalogue(){
   const animations=useRef<Animation[]>([]);
   const [featured,setFeatured]=useState<ProjectRecord|null>(null);
   const previewTimeout=useRef<number|undefined>(undefined);
+  const suppressUntilExit=useRef(false);
   const openPreview=useCallback((project:ProjectRecord)=>{
+    // Dismissing a hover modal exposes the tile beneath the pointer again.
+    // Suppress its synthetic pointer-enter until that pointer leaves the tile.
+    if(suppressUntilExit.current)return;
     if(previewTimeout.current!==undefined)clearTimeout(previewTimeout.current);
     setFeatured(project);
   },[]);
+  const forcePreview=useCallback((project:ProjectRecord)=>{
+    suppressUntilExit.current=false;
+    if(previewTimeout.current!==undefined)clearTimeout(previewTimeout.current);
+    setFeatured(project);
+  },[]);
+  const exitTile=useCallback(()=>{suppressUntilExit.current=false;},[]);
   const cancelPreview=useCallback(()=>{
     if(previewTimeout.current!==undefined)clearTimeout(previewTimeout.current);
-    previewTimeout.current=window.setTimeout(()=>setFeatured(null),430);
+    previewTimeout.current=window.setTimeout(()=>{
+      suppressUntilExit.current=true;
+      setFeatured(null);
+    },430);
   },[]);
   const closePreview=useCallback(()=>{
     if(previewTimeout.current!==undefined)clearTimeout(previewTimeout.current);
     previewTimeout.current=undefined;
+    suppressUntilExit.current=true;
     setFeatured(null);
   },[]);
 
@@ -167,7 +184,7 @@ export function AnimatedCatalogue(){
     </div>
     <div className="work-grid-frame">
       <ol ref={grid} className="work-grid" aria-label={`${projects.length} reserved project slots`}>
-        {projects.map(project=><ProjectTile project={project} key={project.id} onPreview={openPreview}/>)}
+        {projects.map(project=><ProjectTile project={project} key={project.id} onPreview={openPreview} onForcePreview={forcePreview} onExit={exitTile}/>)}
       </ol>
       <div ref={ghostLayer} className="work-grid-ghosts" aria-hidden="true"/>
     </div>
