@@ -64,11 +64,10 @@ function FieldControls({onReturn,onReset,visible,photoMode,onPhotoModeChange}:{
         onClick={()=>{setOpen(false);onPhotoModeChange(!photoMode);}}>
         {photoMode?'3D meadow ↩':'Photographic study ↗'}
       </button>
-      <button type="button" aria-expanded={open} aria-controls="field-settings"
-        onClick={()=>setOpen(v=>!v)} disabled={photoMode}
-        title={photoMode?'Lighting controls apply to the 3D meadow':'Change field settings'}>
+      {!photoMode&&<button type="button" aria-expanded={open} aria-controls="field-settings"
+        onClick={()=>setOpen(v=>!v)} title="Change 3D field settings">
         {open?'Close settings':'Field settings'} <span aria-hidden="true">{open?'−':'+'}</span>
-      </button>
+      </button>}
     </div>
     <div className="field-settings" id="field-settings" hidden={!open||!visible}>
       <p className="field-current">{selectedMood==='Automatic'?`Currently ${currentMood.toLowerCase()}`:`${selectedMood.toLowerCase()} · manual`}</p>
