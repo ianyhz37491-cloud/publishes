@@ -61,7 +61,7 @@ export function PhotographicMeadow({active}:Props){
     };
     raf.current=requestAnimationFrame(draw);
     return()=>cancelAnimationFrame(raf.current);
-  },[active,missing,isMoving]);
+  },[active,missing,isMoving,prepared]);
   const onMove=(clientX:number,clientY:number)=>{
     if(!active||!root.current)return;
     const r=root.current.getBoundingClientRect();
