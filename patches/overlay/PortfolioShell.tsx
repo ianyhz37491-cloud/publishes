@@ -79,12 +79,19 @@ export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sce
   const returnRoute=useRef<PortfolioRoute>('work');
   const touchStart=useRef<number|null>(null);
   const wheelTotal=useRef(0);
+  const landingSection=useRef<HTMLElement>(null);
+  const workSection=useRef<HTMLElement>(null);
+  const fieldSection=useRef<HTMLElement>(null);
   const navigate=useCallback((next:PortfolioRoute)=>{
     const hash=hashForRoute(next);
     if(window.location.hash!==hash)window.location.hash=hash;
     setRoute(next);
   },[]);
   useEffect(()=>onRouteChange(route),[route,onRouteChange]);
+  useEffect(()=>{
+    const section=route==='landing'?landingSection.current:route==='work'?workSection.current:fieldSection.current;
+    section?.focus({preventScroll:true});
+  },[route]);
   useEffect(()=>{if(!sceneAvailable && route==='field')navigate('work');},[sceneAvailable,route,navigate]);
   const enter=useCallback(()=>navigate('work'),[navigate]);
   const leaveField=useCallback(()=>navigate(returnRoute.current),[navigate]);
@@ -122,7 +129,7 @@ export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sce
   };
   const projects=filterProjects(filter);
   return <div className={`portfolio-ui view-${route}`}>
-    <section className="portfolio-landing" aria-hidden={route!=='landing'}
+    <section ref={landingSection} tabIndex={-1} className="portfolio-landing" aria-hidden={route!=='landing'}
       onTouchStart={e=>{touchStart.current=e.touches[0]?.clientY??null;}}
       onTouchEnd={e=>{if(touchStart.current!==null&&touchStart.current-e.changedTouches[0].clientY>55)enter();touchStart.current=null;}}>
       <button className="portfolio-entry" type="button" onClick={enter} tabIndex={route==='landing'?0:-1}
@@ -135,7 +142,7 @@ export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sce
         <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M9 15 L20 26 L31 15" fill="none" stroke="currentColor" strokeWidth="1.2"/></svg>
       </button>
     </section>
-    <section className="portfolio-work" aria-label="Project catalogue" aria-hidden={route!=='work'}>
+    <section ref={workSection} tabIndex={-1} className="portfolio-work" aria-label="Project catalogue" aria-hidden={route!=='work'}>
       <div className="portfolio-work-scroll">
         <div className="work-topline">
           <button type="button" className="work-back" onClick={()=>navigate('landing')} tabIndex={route==='work'?0:-1}>← Field</button>
@@ -159,7 +166,7 @@ export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sce
         title={!sceneAvailable?'3D landscape unavailable in this browser':undefined}
         tabIndex={route==='work'?0:-1}>{sceneAvailable?'Enter field ↗':'Field unavailable'}</button>
     </section>
-    <section className="portfolio-field" aria-label="Interactive field" aria-hidden={route!=='field'}>
+    <section ref={fieldSection} tabIndex={-1} className="portfolio-field" aria-label="Interactive field" aria-hidden={route!=='field'}>
       <div className="field-tip">Drag to look around · Move across the grass</div>
     </section>
     <FieldControls onReturn={leaveField} onReset={onResetCamera} visible={route==='field'}/>
