@@ -208,6 +208,7 @@ files = {
     "src/PortfolioShell.tsx": "overlay/PortfolioShell.tsx",
     "src/projectCatalog.ts": "overlay/projectCatalog.ts",
     "src/WakeField.ts": "overlay/WakeField.ts",
+    "src/portfolioRoutes.ts": "overlay/portfolioRoutes.ts",
 }
 here=Path(__file__).resolve().parent
 for dest,source in files.items():
