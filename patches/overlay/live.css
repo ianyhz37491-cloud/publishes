@@ -238,9 +238,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
  object-fit:cover;object-position:50% 57%;pointer-events:none;user-select:none;
  will-change:transform;backface-visibility:hidden;
 }
-.photo-depth-background{z-index:1;transform:translate3d(calc(var(--parallax-x) * -5px),calc(var(--parallax-y) * -3px),0) scale(1.04)}
-.photo-depth-stems{z-index:4;transform:translate3d(calc(var(--parallax-x) * 9px),calc(var(--parallax-y) * 6px),0) scale(1.055);filter:saturate(.98)}
-.photo-depth-near{z-index:5;transform:translate3d(calc(var(--parallax-x) * 17px),calc(var(--parallax-y) * 11px),0) scale(1.07)}
+.photo-depth-background{z-index:1;transform:translate3d(var(--photo-bg-x,0px),var(--photo-bg-y,0px),0) scale(1.04)}
+.photo-depth-stems{z-index:4;transform:translate3d(var(--photo-stem-x,0px),var(--photo-stem-y,0px),0) scale(1.055);filter:saturate(.98)}
+.photo-depth-near{z-index:5;transform:translate3d(var(--photo-near-x,0px),var(--photo-near-y,0px),0) scale(1.07)}
 /* A restrained refractive orb sits in between *real photo cutouts*. It is
  * deliberately optional: the environment is valuable without a fake prop. */
 .photo-depth-orb{
