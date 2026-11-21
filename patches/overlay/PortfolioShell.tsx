@@ -36,7 +36,7 @@ function FieldControls({onReturn,onReset,visible}:{onReturn:()=>void;onReset:()=
         onClick={()=>setOpen(v=>!v)}>{open?'Close settings':'Field settings'} <span aria-hidden="true">{open?'−':'+'}</span></button>
     </div>
     <div className="field-settings" id="field-settings" hidden={!open || !visible}>
-      <p className="field-current">Currently {currentMood.toLowerCase()}</p>
+      <p className="field-current">{selectedMood==='Automatic'?`Currently ${currentMood.toLowerCase()}`:`${selectedMood.toLowerCase()} · manual`}</p>
       <div className="field-setting">
         <label htmlFor="field-mood">Light</label>
         <select id="field-mood" value={selectedMood} onChange={e=>{
