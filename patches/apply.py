@@ -92,11 +92,21 @@ for a,b in [
 ]:
     edit("src/components/WindSystem.tsx",a,b)
 
+# Give low-density fallback blades slightly broader leaves; retain native full quality.
+edit("src/components/GrassField.tsx",
+     """    const geometry = useMemo(() => {
+        return grassGeometry(7, 0.02, 0.5, 2.0);
+    }, []);""",
+     """    const geometry = useMemo(() => {
+        const reduced=new URLSearchParams(window.location.search).get('quality')==='low';
+        return grassGeometry(7,reduced?0.044:0.02,0.5,2.0);
+    }, []);""")
+
 # Preserve the full 160k-blade desktop look, but prevent mobile from instancing
 # the same dense field at expensive mobile GPU resolutions.
 edit("src/components/GrassField.tsx",
     "const BLADES_PER_ROW = 400;",
-    "const BLADES_PER_ROW = new URLSearchParams(window.location.search).get('quality')==='low' ? 56 : window.matchMedia('(pointer:coarse)').matches ? 280 : 400;")
+    "const BLADES_PER_ROW = new URLSearchParams(window.location.search).get('quality')==='low' ? 112 : window.matchMedia('(pointer:coarse)').matches ? 220 : 400;")
 
 edit("src/components/GrassField.tsx",
     "import { useFrame } from '@react-three/fiber';",
