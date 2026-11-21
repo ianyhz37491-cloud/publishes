@@ -1,12 +1,29 @@
-*{box-sizing:border-box}html,body,#root{width:100%;height:100%;margin:0}body{overflow:hidden}
-.landscape-root{position:relative;width:100%;height:100%;overflow:hidden;background:#101d2b}
-.landscape-ui{position:absolute;bottom:19px;left:22px;display:flex;gap:22px;align-items:end;pointer-events:none;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-shadow:0 1px 8px #0009}
-.landscape-clock{display:flex;flex-direction:column;gap:3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
-.landscape-clock strong{font-weight:450;font-size:23px;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
-.landscape-audio{display:flex;align-items:center;gap:9px;pointer-events:auto;padding-bottom:2px}
-.landscape-audio button,.landscape-audio label{cursor:pointer;color:#fff;background:#0f1c257d;border:1px solid #fff6;backdrop-filter:blur(9px);border-radius:100px;padding:8px 12px;font:500 12px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;white-space:nowrap}
-.landscape-audio button:hover,.landscape-audio label:hover{background:#0f1c25c2}
-.landscape-audio button:focus-visible,.landscape-audio label:focus-within{outline:2px solid white;outline-offset:3px}
-.landscape-audio label input{width:1px;height:1px;position:absolute;opacity:0}
-.landscape-cue{pointer-events:none;position:absolute;right:18px;bottom:22px;color:#fffd;text-shadow:0 1px 7px #000a;font:400 11px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-@media(max-width:700px){.landscape-ui{left:12px;bottom:12px;gap:12px}.landscape-cue{display:none}.landscape-clock strong{font-size:19px}.landscape-audio label{display:none}}
+*{box-sizing:border-box}
+html,body,#root{width:100%;height:100%;margin:0}
+body{overflow:hidden}
+.landscape-root{position:relative;width:100%;height:100%;overflow:hidden;background:#182b48;color:#fff;font-family:ui-serif,Georgia,serif}
+.serenity-heading{position:absolute;top:27px;left:34px;pointer-events:none;text-shadow:0 1px 12px #0a152c99}
+.serenity-heading h1{font-size:26px;font-weight:400;letter-spacing:.025em;line-height:1.1;margin:0}
+.serenity-heading p{font:400 11px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.085em;text-transform:uppercase;opacity:.82;margin:9px 0 0}
+.serenity-footer{position:absolute;bottom:27px;left:34px;display:flex;gap:24px;align-items:end;text-shadow:0 1px 10px #101927c5}
+.serenity-current{display:flex;align-items:baseline;gap:12px}
+.serenity-current strong{font-weight:400;font-size:19px}
+.serenity-pause{background:none;border:0;padding:3px;color:inherit;font:400 11px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;opacity:.78;cursor:pointer}
+.serenity-pause:hover{opacity:1}
+.serenity-quarters{display:flex;gap:5px;margin-top:9px}
+.serenity-quarters span{display:block;width:27px;height:2px;border-radius:2px;background:#ffffff68}
+.serenity-quarters span.active{background:#fff}
+.serenity-sound{display:flex;align-items:center;gap:10px}
+.serenity-sound button{font:400 11px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.035em;color:inherit;background:#11233970;backdrop-filter:blur(12px);border:1px solid #ffffff6b;border-radius:30px;padding:8px 13px;cursor:pointer}
+.serenity-sound button:hover{background:#112339ab}
+.serenity-sound button span{display:inline-block;margin-right:6px;font-size:13px}
+.serenity-audio-error{font:400 11px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#ffe1cc}
+.serenity-cue{position:absolute;bottom:30px;right:30px;color:#ffffffe0;text-shadow:0 1px 10px #122136a5;font:400 11px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;pointer-events:none;margin:0}
+button:focus-visible{outline:2px solid white;outline-offset:4px}
+@media(max-width:700px){
+ .serenity-heading{top:20px;left:19px}
+ .serenity-heading h1{font-size:23px}
+ .serenity-footer{bottom:21px;left:19px;gap:16px}
+ .serenity-cue{display:none}
+}
+@media(prefers-reduced-motion:reduce){.serenity-quarters span{transition:none}}
