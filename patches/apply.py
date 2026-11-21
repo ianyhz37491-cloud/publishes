@@ -92,8 +92,7 @@ edit("src/components/GrassField.tsx",
     "import { useFrame, useThree } from '@react-three/fiber';")
 edit("src/components/GrassField.tsx",
     "import { useWindStore } from '@/stores/windStore';",
-    "import { useWindStore } from '@/stores/windStore';\nimport { solar } from '@/solar';
-import { WakeField } from '@/WakeField';")
+    "import { useWindStore } from '@/stores/windStore';\nimport { solar } from '@/solar';\nimport { WakeField } from '@/WakeField';")
 edit("src/components/GrassField.tsx",
     "    const fieldRef = useRef<THREE.InstancedMesh>(null);",
     """    const fieldRef = useRef<THREE.InstancedMesh>(null);
