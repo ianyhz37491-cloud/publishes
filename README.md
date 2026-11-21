@@ -6,7 +6,7 @@ An editorial portfolio built around a living grassland. The landscape creates at
 
 ## Three routes
 
-- `#/ ` (without the space, `#/`) — centred italic **interactive portfolio** entry over the landscape. Click or tap the title/chevron, scroll down, swipe up, or use Enter/ArrowDown/PageDown to enter.
+- `#/` — centred italic **interactive portfolio** entry over the landscape. Click or tap the title/chevron, scroll down, swipe up, or use Enter/ArrowDown/PageDown to enter.
 - `#/work` — Yeezy-inspired editorial project index with responsive columns and working filters: ALL, SYSTEMS, EXPERIMENTS, RESEARCH and VISUAL.
 - `#/field` — interactive grassland, with collapsible controls for environmental sound/volume, sunlight mood, lighting pause, cycle duration, wind strength, reset camera and return to work.
 
