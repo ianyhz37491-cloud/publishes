@@ -1,4 +1,4 @@
-name: Build and publish Zephyr landscape
+name: Build and publish Serenity
 on:
   push:
     branches: [main]
