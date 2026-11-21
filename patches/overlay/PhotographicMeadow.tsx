@@ -24,6 +24,8 @@ export function PhotographicMeadow({active}:Props){
   const pointer=useRef({x:0,y:0});
   const smooth=useRef({x:0,y:0});
   const [missing,setMissing]=useState(false);
+  const [prepared,setPrepared]=useState(active);
+  useEffect(()=>{if(active)setPrepared(true);},[active]);
   const [orbVisible,setOrbVisible]=useState(true);
   const [isMoving,setMoving]=useState(true);
   useEffect(()=>{
@@ -41,7 +43,7 @@ export function PhotographicMeadow({active}:Props){
       const easing=1-Math.exp(-dt*3.3);
       smooth.current.x+=(pointer.current.x-smooth.current.x)*easing;
       smooth.current.y+=(pointer.current.y-smooth.current.y)*easing;
-      const x=smooth.current.x,y=smooth.current.y;
+      const x=isMoving?smooth.current.x:0,y=isMoving?smooth.current.y:0;
       const node=stage.current;
       if(node){
         const drift=isMoving?Math.sin(elapsed*.34)*.014:0;
@@ -73,7 +75,7 @@ export function PhotographicMeadow({active}:Props){
     onTouchMove={e=>{
       const touch=e.touches[0];if(touch)onMove(touch.clientX,touch.clientY);
     }}>
-    <div className="photo-depth-stage" ref={stage}>
+    {prepared&&<div className="photo-depth-stage" ref={stage}>
       <img className="photo-depth-background" src={urls.background} alt=""
         draggable={false}
         onError={()=>setMissing(true)}/>
@@ -81,7 +83,7 @@ export function PhotographicMeadow({active}:Props){
       <img className="photo-depth-stems" src={urls.stems} alt="" draggable={false}/>
       <img className="photo-depth-near" src={urls.near} alt="" draggable={false}/>
       <div className="photo-depth-grain" aria-hidden="true"/>
-    </div>
+    </div>}
     <div className="photo-depth-corner" aria-hidden="true">
       <span>PHOTOGRAPHIC STUDY / 01</span>
       <span>SPENCER DEMERA · UNSPLASH</span>
