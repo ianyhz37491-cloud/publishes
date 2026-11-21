@@ -29,6 +29,7 @@ export function SerenityAtmosphere(){
   const cloudGroup=useRef<THREE.Group>(null);
   const starColors=useRef<Float32Array|null>(null);
   const previousStars=useRef(-1);
+  const skyElapsed=useRef(0);
   const reduced=useRef(false);
   const direction=useMemo(()=>new THREE.Vector3(),[]);
   const lightColor=useMemo(()=>new THREE.Color(),[]);
@@ -39,9 +40,10 @@ export function SerenityAtmosphere(){
     query.addEventListener('change',changed);
     return ()=>query.removeEventListener('change',changed);
   },[]);
-  useFrame(({clock})=>{
+  useFrame(({clock},delta)=>{
     const time=clock.getElapsedTime();
-    const phase=(cfg.startingTime+((cfg.animated&&!reduced.current)?time/cfg.cycleSeconds:0))%1;
+    if(cfg.animated&&!reduced.current&&!solar.paused)skyElapsed.current+=Math.min(Math.max(delta,0),0.05);
+    const phase=(cfg.startingTime+skyElapsed.current/cfg.cycleSeconds)%1;
     const m=momentAt(phase);
     solar.phase=m.phase;
     solar.mood=m.mood;
