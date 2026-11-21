@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const {chromium}=require(path.resolve(process.cwd(),'node_modules/playwright'));
-const base='http://127.0.0.1:4173/publishes/';
+const base='http://127.0.0.1:4173/publishes/?quality=low'; // Tests real WebGL at explicit reduced quality; full-density GPU still needs device QA.
 const folder=path.resolve(process.cwd(),'../browser-artifacts');
 fs.mkdirSync(folder,{recursive:true});
 async function check(browser,name,device){
