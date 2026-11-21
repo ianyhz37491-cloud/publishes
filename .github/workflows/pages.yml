@@ -93,24 +93,26 @@ jobs:
     steps:
       - name: Check deployed HTML rather than deployment status alone
         env:
-          SITE_URL: https://ianyhz37491-cloud.github.io/publishes/index.html
+          SITE_URL: https://ianyhz37491-cloud.github.io/publishes/
         run: |
           python3 - <<'PY'
           import os, time, urllib.request
-          url=os.environ["SITE_URL"]+"?build="+os.environ["GITHUB_SHA"]
-          for attempt in range(12):
-              try:
-                  request=urllib.request.Request(url,headers={"Cache-Control":"no-cache","User-Agent":"Zephyr-Pages-Verification/1.0"})
-                  with urllib.request.urlopen(request,timeout=15) as response:
-                      html=response.read(30000).decode("utf-8","replace")
-                  is_app=('id="root"' in html and '/publishes/assets/' in html)
-                  print(f"Attempt {attempt+1}: HTTP OK; app={is_app}; title={html[html.find('<title>'):html.find('</title>')+8][:100]!r}")
-                  if is_app:
-                      print("Verified: public HTML is the Zephyr Vite application, not the Markdown README.")
-                      break
-              except Exception as exc:
-                  print(f"Attempt {attempt+1}: {type(exc).__name__}: {exc}")
-              time.sleep(8)
-          else:
-              raise SystemExit("FAIL: the public URL is not serving the app yet. Inspect Pages source, caching and deploy.")
+          from urllib.parse import urlsplit
+          for path in ("", "index.html"):
+              url=os.environ["SITE_URL"]+path+"?build="+os.environ["GITHUB_SHA"]
+              for attempt in range(12):
+                  try:
+                      request=urllib.request.Request(url,headers={"Cache-Control":"no-cache","User-Agent":"Zephyr-Pages-Verification/1.0"})
+                      with urllib.request.urlopen(request,timeout=15) as response:
+                          html=response.read(30000).decode("utf-8","replace")
+                      is_app=('id="root"' in html and '/publishes/assets/' in html)
+                      print(f"Path /publishes/{path}: attempt {attempt+1}, app={is_app}",flush=True)
+                      if is_app:
+                          break
+                  except Exception as exc:
+                      print(f"Path /publishes/{path}: attempt {attempt+1}: {type(exc).__name__}: {exc}",flush=True)
+                  time.sleep(8)
+              else:
+                  raise SystemExit(f"FAIL: {url} does not serve the app. Check Pages source, CDN and index routing.")
+          print("Verified both /publishes/ and /publishes/index.html serve the Zephyr Vite app.",flush=True)
           PY
