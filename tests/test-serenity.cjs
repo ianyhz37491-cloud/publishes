@@ -4,7 +4,7 @@
 const fs=require('node:fs');
 const assert=require('node:assert/strict');
 const path=require('node:path');
-const ts=require('typescript');
+const ts=require(path.resolve(process.cwd(),'node_modules/typescript'));
 const file=path.resolve(process.cwd(),'src/serenityCycle.ts');
 const source=fs.readFileSync(file,'utf8');
 const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
