@@ -84,3 +84,33 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+
+  verify-live:
+    name: Verify the public site serves the application
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Check deployed HTML rather than deployment status alone
+        env:
+          SITE_URL: https://ianyhz37491-cloud.github.io/publishes/index.html
+        run: |
+          python3 - <<'PY'
+          import os, time, urllib.request
+          url=os.environ["SITE_URL"]+"?build="+os.environ["GITHUB_SHA"]
+          for attempt in range(12):
+              try:
+                  request=urllib.request.Request(url,headers={"Cache-Control":"no-cache","User-Agent":"Zephyr-Pages-Verification/1.0"})
+                  with urllib.request.urlopen(request,timeout=15) as response:
+                      html=response.read(30000).decode("utf-8","replace")
+                  is_app=('id="root"' in html and '/publishes/assets/' in html)
+                  print(f"Attempt {attempt+1}: HTTP OK; app={is_app}; title={html[html.find('<title>'):html.find('</title>')+8][:100]!r}")
+                  if is_app:
+                      print("Verified: public HTML is the Zephyr Vite application, not the Markdown README.")
+                      break
+              except Exception as exc:
+                  print(f"Attempt {attempt+1}: {type(exc).__name__}: {exc}")
+              time.sleep(8)
+          else:
+              raise SystemExit("FAIL: the public URL is not serving the app yet. Inspect Pages source, caching and deploy.")
+          PY
