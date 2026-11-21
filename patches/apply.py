@@ -54,7 +54,9 @@ edit("src/shaders/grass.vert",
 
 edit("src/shaders/grass.frag","uniform vec3 uSunDirection;", """uniform vec3 uSunDirection;
 uniform float uDaylight;
-uniform vec3 uSkyTint;""")
+uniform vec3 uSkyTint;
+uniform vec3 uFogColor;
+uniform float uRain;""")
 section("src/shaders/grass.frag",
     "    // Retrieve the simplex 2D noise based on the x, z coordinate of the worldpos",
     "    vec3 baseColorAccent = mix(baseColor, dry, vAccent * vUv.y);",
@@ -73,6 +75,10 @@ edit("src/shaders/grass.frag",
     vec3 moonlit=moonBase*(0.35+0.40*vUv.y);
     vec3 sunlit=finalColor*mix(0.60,1.0,uDaylight)*uSkyTint;
     finalColor=mix(sunlit,moonlit,moon);
+    finalColor=mix(finalColor,vec3(0.12,0.24,0.18),uRain*.14);
+    float distanceFromCentre=length(vWorldPos.xz);
+    float fog=smoothstep(4.3,12.0,distanceFromCentre);
+    finalColor=mix(finalColor,uFogColor,fog*.5);
     gl_FragColor = vec4(finalColor,1.0);""")
 
 for a,b in [
@@ -152,7 +158,9 @@ edit("src/components/GrassField.tsx",
     "            shader.uniforms.uTurbAmount.value = wind.turbAmount;",
     """            shader.uniforms.uTurbAmount.value = wind.turbAmount;
             shader.uniforms.uDaylight.value=solar.daylight;
+            shader.uniforms.uRain.value=solar.rainMix;
             (shader.uniforms.uSkyTint.value as THREE.Color).copy(solar.tint);
+            (shader.uniforms.uFogColor.value as THREE.Color).copy(solar.fogColor);
 
             let active=solar.interactionEnabled&&inside.current;
             if(active){
@@ -195,11 +203,13 @@ edit("src/components/GrassField.tsx",
     """                    uSunDirection: { value: new THREE.Vector3() },
                     uDaylight: {value:1},
                     uSkyTint: {value:new THREE.Color('#ffffff')},
+                    uFogColor: {value:new THREE.Color('#77a4ac')},
+                    uRain: {value:0},
                     uWakeTexture: {value:wakeTexture},""")
 
 edit("src/components/GrassField.tsx",
      "shader.uniforms.uWindStrength.value = wind.currentStrength;",
-     "shader.uniforms.uWindStrength.value = wind.currentStrength*solar.windMultiplier;")
+     "shader.uniforms.uWindStrength.value = wind.currentStrength*solar.windMultiplier*(1+solar.rainMix*.35);")
 
 # Add pre-authored components after confirming the core patch applies.
 files = {
@@ -213,8 +223,11 @@ files = {
     "src/projectCatalog.ts": "overlay/projectCatalog.ts",
     "src/WakeField.ts": "overlay/WakeField.ts",
     "src/portfolioRoutes.ts": "overlay/portfolioRoutes.ts",
+    "src/AnimatedCatalogue.tsx": "overlay/AnimatedCatalogue.tsx",
+    "src/MeadowWorld.tsx": "overlay/MeadowWorld.tsx",
+    "src/MeadowEcology.tsx": "overlay/MeadowEcology.tsx",
 }
 here=Path(__file__).resolve().parent
 for dest,source in files.items():
     (repo/dest).write_text((here/source).read_text())
-print("Applied Serenity portfolio, field controls and directional grass wake.")
+print("Applied Serenity II: continuous meadow, living ecology, atmospheric weather and portfolio transitions.")
