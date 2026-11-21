@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Cloud, Clouds, OrbitControls, Sky, Stars } from '@react-three/drei';
 import { useControls } from 'leva';
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ComponentRef } from 'react';
 import { GrassField } from '@/components/GrassField';
 import { GenerateTerrain } from '@/components/Terrain';
 import { WindSystem } from '@/components/WindSystem';
@@ -16,7 +16,7 @@ const SUNSET_GRASS=new THREE.Color('#ffd3ac'),SUN_LIGHT=new THREE.Color('#fff6df
 function Atmosphere(){
   const config=useControls('Atmosphere',{animated:true,cycleSeconds:{value:10,min:6,max:180,step:1},startingTime:{value:0.42,min:0,max:1,step:0.01},clouds:true});
   const sun=useRef<THREE.DirectionalLight>(null),hemisphere=useRef<THREE.HemisphereLight>(null);
-  const sky=useRef<THREE.Mesh>(null),night=useRef<THREE.ShaderMaterial>(null);
+  const sky=useRef<ComponentRef<typeof Sky>>(null),night=useRef<THREE.ShaderMaterial>(null);
   const stars=useRef<THREE.Points>(null),cloudGroup=useRef<THREE.Group>(null);
   const originalColors=useRef<Float32Array|null>(null),lastBrightness=useRef(-1),reduced=useRef(false);
   const direction=useMemo(()=>new THREE.Vector3(),[]),sunlight=useMemo(()=>new THREE.Color(),[]);
@@ -94,7 +94,7 @@ function AmbientSound(){
   async function toggle(){
     try{
       if(!ctx.current){ctx.current=new AudioContext();createWind(ctx.current);}
-      if(!media.current){const a=new Audio(import.meta.env.BASE_URL+'audio/meadow.ogg');a.loop=true;a.volume=0.10;media.current=a;}
+      if(!media.current){const a=new Audio(new URL('audio/meadow.ogg',document.baseURI).href);a.loop=true;a.volume=0.10;media.current=a;}
       if(playing){media.current.pause();await ctx.current.suspend();setPlaying(false);}
       else{const p=ctx.current.resume();const m=media.current.play().catch(()=>{});await p;await m;setPlaying(true);}
     }catch(e){console.warn('Audio unavailable',e);setPlaying(false);}
