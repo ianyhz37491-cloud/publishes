@@ -67,7 +67,12 @@ section("src/shaders/grass.frag",
     baseColorAccent=mix(baseColorAccent,vec3(0.28,0.38,0.12),vAccent*vUv.y*0.24);""")
 edit("src/shaders/grass.frag",
      "    gl_FragColor = vec4(finalColor, 1.0);",
-     """    finalColor *= mix(0.34,1.0,uDaylight)*uSkyTint;
+     """    // Moonlight must reveal blade shape without turning midnight into daylight.
+    float moon=1.0-smoothstep(0.45,0.82,uDaylight);
+    vec3 moonBase=mix(baseColorAccent,vec3(0.18,0.30,0.41),0.55);
+    vec3 moonlit=moonBase*(0.35+0.40*vUv.y);
+    vec3 sunlit=finalColor*mix(0.60,1.0,uDaylight)*uSkyTint;
+    finalColor=mix(sunlit,moonlit,moon);
     gl_FragColor = vec4(finalColor,1.0);""")
 
 for a,b in [
