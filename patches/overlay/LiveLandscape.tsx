@@ -2,7 +2,8 @@ import {Canvas} from '@react-three/fiber';
 import {OrbitControls} from '@react-three/drei';
 import {Leva} from 'leva';
 import {Component,useRef,useState,type ComponentRef,type ReactNode} from 'react';
-import {GenerateTerrain} from '@/components/Terrain';
+import {MeadowWorld} from '@/MeadowWorld';
+import {MeadowEcology} from '@/MeadowEcology';
 import {GrassField} from '@/components/GrassField';
 import {WindSystem} from '@/components/WindSystem';
 import {SerenityAtmosphere} from '@/SerenityAtmosphere';
@@ -47,10 +48,10 @@ export default function LiveLandscape(){
         fallback={<div className="landscape-fallback" role="alert">3D view unavailable. Browse the project catalogue instead.</div>}>
         <color attach="background" args={['#192d43']}/>
         <SerenityAtmosphere/>
-        <GenerateTerrain/><GrassField/><WindSystem/>
+        <MeadowWorld/><GrassField/><WindSystem/><MeadowEcology/>
         <OrbitControls ref={controls} target={[0,0.4,-1.5]} enablePan={false}
-          minDistance={1} maxDistance={9}
-          maxPolarAngle={Math.PI/2-0.035} enableDamping dampingFactor={0.045}/>
+          minDistance={1.4} maxDistance={6.5}
+          minPolarAngle={1.13} maxPolarAngle={Math.PI/2-0.045} enableDamping dampingFactor={0.045}/>
       </Canvas>}
     </SceneBoundary>
     <PortfolioShell sceneAvailable={sceneAvailable} onResetCamera={resetCamera} onRouteChange={setView}/>

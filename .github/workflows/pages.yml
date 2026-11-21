@@ -56,28 +56,6 @@ jobs:
         working-directory: zephyr
         run: node ../tests/test-portfolio.cjs
 
-      - name: Browser smoke test (desktop and mobile Chromium)
-        working-directory: zephyr
-        run: |
-          npm install --no-save --no-package-lock --ignore-scripts playwright@1.55.1
-          npx playwright install --with-deps chromium
-          npm run preview -- --base /publishes/ --host 127.0.0.1 --port 4173 > /tmp/portfolio-preview.log 2>&1 &
-          PREVIEW_PID=$!
-          trap 'kill "$PREVIEW_PID" || true' EXIT
-          for i in $(seq 1 40); do
-            if curl -fsS http://127.0.0.1:4173/publishes/ > /dev/null; then break; fi
-            sleep 1
-          done
-          node ../tests/test-portfolio-browser.cjs
-
-      - name: Upload browser QA screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: portfolio-browser-qa
-          path: browser-artifacts/*.png
-          if-no-files-found: ignore
-
       - name: Install verified CC0 countryside field recordings
         run: |
           mkdir -p zephyr/dist/licenses zephyr/dist/audio
@@ -107,6 +85,28 @@ jobs:
           fetch_checked night.m4a \
             https://raw.githubusercontent.com/abhinandansharma/ambiently/8b99d668e91957d80b66d419fae5cb0dba2be528/demo/public/sounds/night.m4a \
             ac20cb21a3dc6f0d2763db8bee60d102fd88ef5c
+
+      - name: Browser smoke test (desktop and mobile Chromium)
+        working-directory: zephyr
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts playwright@1.55.1
+          npx playwright install --with-deps chromium
+          npm run preview -- --base /publishes/ --host 127.0.0.1 --port 4173 > /tmp/portfolio-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" || true' EXIT
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4173/publishes/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node ../tests/test-portfolio-browser.cjs
+
+      - name: Upload browser QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: portfolio-browser-qa
+          path: browser-artifacts/*.png
+          if-no-files-found: ignore
 
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'

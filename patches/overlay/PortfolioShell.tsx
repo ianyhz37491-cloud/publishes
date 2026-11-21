@@ -1,20 +1,44 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
-import {CATEGORIES,filterProjects,type CategoryFilter,type ProjectRecord} from '@/projectCatalog';
+import {AnimatedCatalogue} from '@/AnimatedCatalogue';
 import {SerenitySound} from '@/SerenitySound';
-import {solar} from '@/solar';
+import {solar,type MeadowWeather} from '@/solar';
 import type {SerenityMood} from '@/serenityCycle';
 import {routeFromHash,hashForRoute,type PortfolioRoute} from '@/portfolioRoutes';
 
 const MOODS:SerenityMood[]=['Sunrise','Daylight','Sunset','Night'];
+const WEATHER:ReadonlyArray<{value:MeadowWeather|'auto';label:string}>=[
+  {value:'auto',label:'Automatic'},
+  {value:'clear',label:'Clear'},
+  {value:'cloudy',label:'Overcast'},
+  {value:'drizzle',label:'Drizzle'},
+  {value:'rain',label:'Rain'},
+];
 
-function ProjectTile({project}:{project:ProjectRecord}){
-  return <li className="work-tile" aria-label={`${project.id}, reserved empty slot`}>
-    <div className="work-tile-image" aria-hidden="true"><span className="work-tile-marker">—</span></div>
-    <div className="work-tile-caption">
-      <span className="work-code">{project.id}</span>
-      <span className="work-empty">UNPUBLISHED</span>
+function AmbientControls(){
+  const [open,setOpen]=useState(false);
+  const [volume,setVolume]=useState(solar.soundVolume);
+  const [workLevel,setWorkLevel]=useState(solar.workSoundLevel);
+  const [muffled,setMuffled]=useState(solar.workMuffle);
+  return <div className="ambient-controls">
+    <SerenitySound/>
+    <button type="button" className="ambient-settings-toggle"
+      aria-label={open?'Close sound settings':'Sound settings'} aria-expanded={open}
+      aria-controls="ambient-settings" onClick={()=>setOpen(v=>!v)}>···</button>
+    <div id="ambient-settings" className="ambient-settings" hidden={!open}>
+      <label htmlFor="ambient-volume">Overall volume <output>{Math.round(volume*100)}%</output></label>
+      <input id="ambient-volume" type="range" min="0" max="1" step=".05"
+        value={volume} onChange={e=>{const v=Number(e.target.value);setVolume(v);solar.soundVolume=v;}}/>
+      <label htmlFor="ambient-work-volume">Project-menu volume <output>{Math.round(workLevel*100)}%</output></label>
+      <input id="ambient-work-volume" type="range" min="0" max="1" step=".05"
+        value={workLevel} onChange={e=>{const v=Number(e.target.value);setWorkLevel(v);solar.workSoundLevel=v;}}/>
+      <label className="ambient-checkbox">
+        <input type="checkbox" checked={muffled}
+          onChange={e=>{setMuffled(e.target.checked);solar.workMuffle=e.target.checked;}}/>
+        Muffle sound while browsing work
+      </label>
+      <p>Sound is optional and always starts muted. Work-view audio fades automatically.</p>
     </div>
-  </li>;
+  </div>;
 }
 
 function FieldControls({onReturn,onReset,visible}:{onReturn:()=>void;onReset:()=>void;visible:boolean}){
@@ -22,8 +46,8 @@ function FieldControls({onReturn,onReset,visible}:{onReturn:()=>void;onReset:()=
   const [paused,setPaused]=useState(solar.paused);
   const [duration,setDuration]=useState(solar.cycleSeconds);
   const [wind,setWind]=useState(solar.windMultiplier);
-  const [volume,setVolume]=useState(solar.soundVolume);
   const [selectedMood,setSelectedMood]=useState('Automatic');
+  const [weather,setWeather]=useState<MeadowWeather|'auto'>(solar.weatherMode);
   const [currentMood,setCurrentMood]=useState<SerenityMood>(solar.mood);
   useEffect(()=>{
     const id=window.setInterval(()=>setCurrentMood(solar.mood),500);
@@ -35,14 +59,14 @@ function FieldControls({onReturn,onReset,visible}:{onReturn:()=>void;onReset:()=
       <button type="button" aria-expanded={open} aria-controls="field-settings"
         onClick={()=>setOpen(v=>!v)}>{open?'Close settings':'Field settings'} <span aria-hidden="true">{open?'−':'+'}</span></button>
     </div>
-    <div className="field-settings" id="field-settings" hidden={!open || !visible}>
+    <div className="field-settings" id="field-settings" hidden={!open||!visible}>
       <p className="field-current">{selectedMood==='Automatic'?`Currently ${currentMood.toLowerCase()}`:`${selectedMood.toLowerCase()} · manual`}</p>
       <div className="field-setting">
         <label htmlFor="field-mood">Light</label>
         <select id="field-mood" value={selectedMood} onChange={e=>{
           const next=e.target.value;setSelectedMood(next);
           if(next==='Automatic'){solar.paused=false;setPaused(false);}
-          else {setCurrentMood(next as SerenityMood);solar.phaseManual=(MOODS.indexOf(next as SerenityMood)+0.5)/4;solar.paused=true;setPaused(true);}
+          else{setCurrentMood(next as SerenityMood);solar.phaseManual=(MOODS.indexOf(next as SerenityMood)+.5)/4;solar.paused=true;setPaused(true);}
         }}>
           <option>Automatic</option>
           {MOODS.map(m=><option key={m}>{m}</option>)}
@@ -55,27 +79,30 @@ function FieldControls({onReturn,onReset,visible}:{onReturn:()=>void;onReset:()=
       <div className="field-setting">
         <label htmlFor="field-cycle">Full day cycle <output>{duration}s</output></label>
         <input id="field-cycle" type="range" min="10" max="180" step="5" value={duration}
-          onChange={e=>{const n=Number(e.target.value);solar.cycleSeconds=n;setDuration(n);}}/>
+          onChange={e=>{const v=Number(e.target.value);solar.cycleSeconds=v;setDuration(v);}}/>
+      </div>
+      <div className="field-setting">
+        <label htmlFor="field-weather">Weather</label>
+        <select id="field-weather" value={weather} onChange={e=>{
+          const next=e.target.value as MeadowWeather|'auto';
+          solar.weatherMode=next;setWeather(next);
+        }}>
+          {WEATHER.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}
+        </select>
       </div>
       <div className="field-setting">
         <label htmlFor="field-wind">Wind <output>{Math.round(wind*100)}%</output></label>
-        <input id="field-wind" type="range" min="0" max="1.8" step="0.1" value={wind}
-          onChange={e=>{const n=Number(e.target.value);solar.windMultiplier=n;setWind(n);}}/>
-      </div>
-      <div className="field-sound">
-        <SerenitySound/>
-        <label htmlFor="field-volume">Volume <output>{Math.round(volume*100)}%</output></label>
-        <input id="field-volume" type="range" min="0" max="1" step="0.05" value={volume}
-          onChange={e=>{const n=Number(e.target.value);solar.soundVolume=n;setVolume(n);}}/>
+        <input id="field-wind" type="range" min="0" max="1.8" step=".1" value={wind}
+          onChange={e=>{const v=Number(e.target.value);solar.windMultiplier=v;setWind(v);}}/>
       </div>
       <button type="button" className="field-inline-button" onClick={onReset}>Reset camera</button>
+      <p className="field-settings-note">Sound and project-menu ambience are adjustable in the top-right corner.</p>
     </div>
   </aside>;
 }
 
 export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sceneAvailable:boolean;onResetCamera:()=>void;onRouteChange:(route:PortfolioRoute)=>void}){
   const [route,setRoute]=useState<PortfolioRoute>(()=>routeFromHash(window.location.hash));
-  const [filter,setFilter]=useState<CategoryFilter>('ALL');
   const returnRoute=useRef<PortfolioRoute>('work');
   const touchStart=useRef<number|null>(null);
   const wheelTotal=useRef(0);
@@ -91,8 +118,11 @@ export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sce
   useEffect(()=>{
     const section=route==='landing'?landingSection.current:route==='work'?workSection.current:fieldSection.current;
     section?.focus({preventScroll:true});
+    solar.route=route;
+    solar.interactionEnabled=route==='field';
+    solar.cursorMotion=0;
   },[route]);
-  useEffect(()=>{if(!sceneAvailable && route==='field')navigate('work');},[sceneAvailable,route,navigate]);
+  useEffect(()=>{if(!sceneAvailable&&route==='field')navigate('work');},[sceneAvailable,route,navigate]);
   const enter=useCallback(()=>navigate('work'),[navigate]);
   const leaveField=useCallback(()=>navigate(returnRoute.current),[navigate]);
   useEffect(()=>{
@@ -101,14 +131,9 @@ export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sce
     return ()=>window.removeEventListener('hashchange',change);
   },[]);
   useEffect(()=>{
-    solar.interactionEnabled=route==='field';
-    solar.cursorMotion=0;
-  },[route]);
-  useEffect(()=>{
     const key=(event:KeyboardEvent)=>{
       if(event.key==='Escape'&&route==='field'){event.preventDefault();leaveField();return;}
-      if(route==='landing'&&['ArrowDown','PageDown','Enter'].includes(event.key)
-        &&!(event.target instanceof HTMLButtonElement)){
+      if(route==='landing'&&['ArrowDown','PageDown','Enter'].includes(event.key)&&!(event.target instanceof HTMLButtonElement)){
         event.preventDefault();enter();
       }
     };
@@ -127,7 +152,6 @@ export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sce
     returnRoute.current=route==='landing'?'landing':'work';
     navigate('field');
   };
-  const projects=filterProjects(filter);
   return <div className={`portfolio-ui view-${route}`}>
     <section ref={landingSection} tabIndex={-1} className="portfolio-landing" aria-hidden={route!=='landing'}
       onTouchStart={e=>{touchStart.current=e.touches[0]?.clientY??null;}}
@@ -145,21 +169,10 @@ export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sce
     <section ref={workSection} tabIndex={-1} className="portfolio-work" aria-label="Project catalogue" aria-hidden={route!=='work'}>
       <div className="portfolio-work-scroll">
         <div className="work-topline">
-          <button type="button" className="work-back" onClick={()=>navigate('landing')} tabIndex={route==='work'?0:-1}>← Field</button>
+          <button type="button" className="work-back" onClick={()=>navigate('landing')} tabIndex={route==='work'?0:-1}>← Landing</button>
           <span className="work-topline-brand">INDEX OF WORK</span>
-          <span className="work-topline-meta">PORTFOLIO / 001</span>
         </div>
-        <nav className="work-filters" aria-label="Project categories">
-          {CATEGORIES.map(category=><button type="button" key={category}
-            className={filter===category?'is-active':''} aria-pressed={filter===category}
-            tabIndex={route==='work'?0:-1} onClick={()=>setFilter(category)}>{category}</button>)}
-        </nav>
-        <div className="work-explanation" role="status">
-          <span>Catalogue structure</span><span>Projects to be published</span>
-        </div>
-        <ol className="work-grid" aria-label={`${projects.length} reserved project slots`}>
-          {projects.map(project=><ProjectTile project={project} key={project.id}/>)}
-        </ol>
+        <AnimatedCatalogue/>
         <div className="work-endnote">Portfolio entries have not been published yet. No sample projects are represented as completed work.</div>
       </div>
       <button type="button" className="work-free-roam" disabled={!sceneAvailable} onClick={openField}
@@ -167,8 +180,9 @@ export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sce
         tabIndex={route==='work'?0:-1}>{sceneAvailable?'Enter field ↗':'Field unavailable'}</button>
     </section>
     <section ref={fieldSection} tabIndex={-1} className="portfolio-field" aria-label="Interactive field" aria-hidden={route!=='field'}>
-      <div className="field-tip">Drag to look around · Move across the grass</div>
+      <div className="field-tip">Move to brush the grass · Drag to look around</div>
     </section>
     <FieldControls onReturn={leaveField} onReset={onResetCamera} visible={route==='field'}/>
+    <AmbientControls/>
   </div>;
 }

@@ -1,40 +1,43 @@
-# Interactive portfolio / Serenity
+# Interactive Portfolio / Serenity II
 
-An editorial portfolio built around a living grassland. The landscape creates atmosphere; the work index remains directly accessible without playing a game.
+A minimalist project index surrounded by a living, explorable meadow. The environmental scene is optional; visitors can reach the work catalogue immediately.
 
-**[Open the portfolio](https://ianyhz37491-cloud.github.io/publishes/)** · [CI / Pages deployment](.github/workflows/pages.yml) · [Sound and licence sources](AUDIO_SOURCES.md) · [Implementation status](docs/IMPLEMENTATION_STATUS.md)
+**[Open the site](https://ianyhz37491-cloud.github.io/publishes/)** · [Build and deployment](.github/workflows/pages.yml) · [Audio licences](AUDIO_SOURCES.md) · [Release evidence and next stages](docs/SERENITY_II_RELEASE.md)
 
-## Three routes
+## Interface
 
-- `#/` — centred italic **interactive portfolio** entry over the landscape. Click or tap the title/chevron, scroll down, swipe up, or use Enter/ArrowDown/PageDown to enter.
-- `#/work` — Yeezy-inspired editorial project index with responsive columns and working filters: ALL, SYSTEMS, EXPERIMENTS, RESEARCH and VISUAL.
-- `#/field` — interactive grassland, with collapsible controls for environmental sound/volume, sunlight mood, lighting pause, cycle duration, wind strength, reset camera and return to work.
+Three static-host-safe routes use the same persistent React Three Fiber canvas and ambient-audio player.
 
-These are hash routes so deep links, refresh and browser history work on GitHub Pages' static project path. The three states share **one persistent React Three Fiber Canvas** and a persistent ambient-audio component; opening a catalogue or returning from the field does not rebuild the environment.
+- `#/` — centred white italic **interactive portfolio** over the meadow; click, scroll, swipe or use keyboard to enter.
+- `#/work` — an editorial, responsive catalogue with stable project codes and a sliding underline. Filtering animates excluded tiles out and rearranges remaining tiles using FLIP. The 12 slots are **unpublished placeholders**, not real cases or live links.
+- `#/field` — free exploration with a controlled low-angle camera, adjustable day/night cycle, manual weather, wind, camera reset and return to the previous portfolio state.
 
-**Catalogue contents are intentionally not published yet.** The 12 prototype slots are clearly identified as unpublished. Their stable serial codes are not references to actual work. The typed [catalogue model](patches/overlay/projectCatalog.ts) is ready for later verified titles, images, descriptions, provenance and links, but none are invented here.
+A compact sound button persists in the top-right corner of every route. Sound begins **off**, can be enabled or muted at any time, and is faded and optionally low-pass muffled while browsing the work index. The adjacent settings control adjusts overall volume, project-menu volume and muffling.
 
-## Landscape
+## Environmental rendering
 
-The scene extends [Zephyr by rether](https://github.com/RetherSzu/zephyr) (MIT, pinned at `bd74c81efa0c49a8f8acc6cab41550dd2f0d95b0`). It preserves Zephyr's original instanced grass, shader wind, terrain and project licence. The shader colours, four-stage lighting cycle, independent clouds and opted-in CC0 ambient recordings are maintained.
+This project preserves the source architecture and original GPU-instanced grass/wind field of [Zephyr by rether](https://github.com/RetherSzu/zephyr) (MIT; pinned revision `bd74c81efa0c49a8f8acc6cab41550dd2f0d95b0`). The source overlay is in [patches/apply.py](patches/apply.py).
 
-Cursor strokes in free roam now paint a small world-aligned **directional wake texture**. Its deflection flows along the entire sweep, decays smoothly and leaves each blade root anchored. The wake is composited with the original GPU wind—not a spherical cursor force or per-blade JavaScript animation. Pointer movement over the sky or catalogue cannot create grass strokes.
+**Meadow continuity:** the former visible 10 × 10 floating patch is now a height-consistent, 180 × 180 terrain with a lower-density outer grass field, distance fog, and restrained camera orbit limits. Far scenery receives fewer blades than the foreground; the renderer does not attempt 160k blades for every distant tile.
 
-Typical scene density is 160,000 blades on desktop and 78,400 on coarse-pointer devices. The optional `?quality=low` query parameter deliberately reduces the scene to 56² blades for constrained rendering environments. It is used for browser integration QA; it is not evidence that full-density rendering meets a particular FPS target. An HTML/CSS scene poster keeps entry and the catalogue usable when WebGL2 is unavailable.
+**Atmosphere:** explicit blue daylight sky, sunrise and sunset, moonlit night, star visibility, several independent cloud forms and gradual clear/overcast/drizzle/rain states. The weather may evolve slowly on its own or be selected from Field settings.
 
-The original audio sources remain integrity-checked by Git blobs in CI, have their provenance preserved publicly, and never autoplay.
+**Vegetation and wildlife:** instanced daisies sway independently; butterflies move during suitable daylight; firefly sprites appear mainly at night; wind-slanted rain particles respond to rainfall strength. The wildlife and rain are quality-budgeted by device class.
 
-## Source and verification
+**Grass interaction:** a directionally scattered world-aligned wake with irregular edges and different recovery times replaces the original circular cursor sphere. All continuous blade bending remains on the GPU, layered with Zephyr's natural wind. Interaction near the ground raises an existing licensed rustle recording only after the visitor explicitly enables sound.
 
-The repository [patches the pinned upstream source](patches/apply.py) at build time with the [portfolio overlay](patches/overlay). No second 3D engine was introduced.
+Presets:
+- Desktop: 400 × 400 foreground grass blades (160,000), plus sparse distant foliage.
+- Coarse-pointer devices: 220 × 220 foreground blades (48,400).
+- Explicit `?quality=low`: 112 × 112 broader low-power foreground blades (12,544), plus reduced wildlife and distant tufts.
+- WebGL2 unavailable: static gradient poster with a fully operable catalogue, with free roam disabled honestly.
 
-Every proposed release must pass:
+These are budgets, **not measured FPS guarantees**.
 
-- Original Serenity model tests: four equal-length lighting moods and continuous transitions.
-- [Portfolio model tests](tests/test-portfolio.cjs): catalogue provenance, category filters, static routes, wake continuity/locality/decay.
-- [Desktop/mobile browser checks](tests/test-portfolio-browser.cjs): real landing interaction, filtering, deep-link refresh, history, free-roam control actions and screenshots on a reduced-density WebGL scene.
-- TypeScript/Vite production build, the audio file SHA checks and post-deployment Pages HTML checks.
+## Verification
 
-A green CI run does **not** certify exact full-quality Safari/macOS/iPhone visual fidelity, measured frame rate, physical-audio quality or the subjective realism of the wake. These require direct hardware review. The latest evidence and unresolved checks are in [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
+[Original Serenity cycle tests](tests/test-serenity.cjs), [catalogue/wake model tests](tests/test-portfolio.cjs), strict TypeScript/Vite build and [desktop/mobile Chromium browser journeys](tests/test-portfolio-browser.cjs) run in GitHub Actions. Browser checks cover landing, filters, deep links, sound activation/mute, mood selection, manual rain, field return and screenshots. Pinned CC0 sound recordings are SHA-verified before browser tests and deployment.
 
-No private notes or unpublished actual project details are stored in this public repository.
+Software-rendered Chromium screenshots use `?quality=low`. They verify real WebGL and UI interactions, **not full-density Mac Safari performance, artistic realism or iPhone GPU behaviour**. Physical listening, Safari compatibility and measured FPS remain hardware release gates.
+
+No proprietary portfolio images or private project records are included. [SERENITY_II_RELEASE.md](docs/SERENITY_II_RELEASE.md) records implemented stages and outstanding improvements.

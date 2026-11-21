@@ -54,15 +54,17 @@ edit("src/shaders/grass.vert",
 
 edit("src/shaders/grass.frag","uniform vec3 uSunDirection;", """uniform vec3 uSunDirection;
 uniform float uDaylight;
-uniform vec3 uSkyTint;""")
+uniform vec3 uSkyTint;
+uniform vec3 uFogColor;
+uniform float uRain;""")
 section("src/shaders/grass.frag",
     "    // Retrieve the simplex 2D noise based on the x, z coordinate of the worldpos",
     "    vec3 baseColorAccent = mix(baseColor, dry, vAccent * vUv.y);",
     """    // Restrained natural greens. Remove the original strong three-biome blotches.
     float perBlade = fract(sin(dot(floor(vWorldPos.xz*41.0),vec2(127.1,311.7)))*43758.5453);
     float variation = (1.0+clamp(vBiomeNoise,-1.0,1.0)*0.045)*mix(0.965,1.035,perBlade);
-    vec3 baseRoot=vec3(0.09,0.24,0.065);
-    vec3 baseTip=vec3(0.35,0.61,0.195);
+    vec3 baseRoot=vec3(0.09,0.22,0.079);
+    vec3 baseTip=vec3(0.31,0.53,0.20);
     vec3 baseColorAccent=mix(baseRoot,baseTip,pow(vUv.y,0.83))*variation;
     baseColorAccent=mix(baseColorAccent,vec3(0.28,0.38,0.12),vAccent*vUv.y*0.24);""")
 edit("src/shaders/grass.frag",
@@ -73,6 +75,10 @@ edit("src/shaders/grass.frag",
     vec3 moonlit=moonBase*(0.35+0.40*vUv.y);
     vec3 sunlit=finalColor*mix(0.60,1.0,uDaylight)*uSkyTint;
     finalColor=mix(sunlit,moonlit,moon);
+    finalColor=mix(finalColor,vec3(0.12,0.24,0.18),uRain*.14);
+    float distanceFromCentre=length(vWorldPos.xz);
+    float fog=smoothstep(4.3,12.0,distanceFromCentre);
+    finalColor=mix(finalColor,uFogColor,fog*.5);
     gl_FragColor = vec4(finalColor,1.0);""")
 
 for a,b in [
@@ -86,11 +92,21 @@ for a,b in [
 ]:
     edit("src/components/WindSystem.tsx",a,b)
 
+# Give low-density fallback blades slightly broader leaves; retain native full quality.
+edit("src/components/GrassField.tsx",
+     """    const geometry = useMemo(() => {
+        return grassGeometry(7, 0.02, 0.5, 2.0);
+    }, []);""",
+     """    const geometry = useMemo(() => {
+        const reduced=new URLSearchParams(window.location.search).get('quality')==='low';
+        return grassGeometry(7,reduced?0.044:0.02,0.5,2.0);
+    }, []);""")
+
 # Preserve the full 160k-blade desktop look, but prevent mobile from instancing
 # the same dense field at expensive mobile GPU resolutions.
 edit("src/components/GrassField.tsx",
     "const BLADES_PER_ROW = 400;",
-    "const BLADES_PER_ROW = new URLSearchParams(window.location.search).get('quality')==='low' ? 56 : window.matchMedia('(pointer:coarse)').matches ? 280 : 400;")
+    "const BLADES_PER_ROW = new URLSearchParams(window.location.search).get('quality')==='low' ? 112 : window.matchMedia('(pointer:coarse)').matches ? 220 : 400;")
 
 edit("src/components/GrassField.tsx",
     "import { useFrame } from '@react-three/fiber';",
@@ -152,7 +168,9 @@ edit("src/components/GrassField.tsx",
     "            shader.uniforms.uTurbAmount.value = wind.turbAmount;",
     """            shader.uniforms.uTurbAmount.value = wind.turbAmount;
             shader.uniforms.uDaylight.value=solar.daylight;
+            shader.uniforms.uRain.value=solar.rainMix;
             (shader.uniforms.uSkyTint.value as THREE.Color).copy(solar.tint);
+            (shader.uniforms.uFogColor.value as THREE.Color).copy(solar.fogColor);
 
             let active=solar.interactionEnabled&&inside.current;
             if(active){
@@ -195,11 +213,13 @@ edit("src/components/GrassField.tsx",
     """                    uSunDirection: { value: new THREE.Vector3() },
                     uDaylight: {value:1},
                     uSkyTint: {value:new THREE.Color('#ffffff')},
+                    uFogColor: {value:new THREE.Color('#77a4ac')},
+                    uRain: {value:0},
                     uWakeTexture: {value:wakeTexture},""")
 
 edit("src/components/GrassField.tsx",
      "shader.uniforms.uWindStrength.value = wind.currentStrength;",
-     "shader.uniforms.uWindStrength.value = wind.currentStrength*solar.windMultiplier;")
+     "shader.uniforms.uWindStrength.value = wind.currentStrength*solar.windMultiplier*(1+solar.rainMix*.35);")
 
 # Add pre-authored components after confirming the core patch applies.
 files = {
@@ -213,8 +233,11 @@ files = {
     "src/projectCatalog.ts": "overlay/projectCatalog.ts",
     "src/WakeField.ts": "overlay/WakeField.ts",
     "src/portfolioRoutes.ts": "overlay/portfolioRoutes.ts",
+    "src/AnimatedCatalogue.tsx": "overlay/AnimatedCatalogue.tsx",
+    "src/MeadowWorld.tsx": "overlay/MeadowWorld.tsx",
+    "src/MeadowEcology.tsx": "overlay/MeadowEcology.tsx",
 }
 here=Path(__file__).resolve().parent
 for dest,source in files.items():
     (repo/dest).write_text((here/source).read_text())
-print("Applied Serenity portfolio, field controls and directional grass wake.")
+print("Applied Serenity II: continuous meadow, living ecology, atmospheric weather and portfolio transitions.")
