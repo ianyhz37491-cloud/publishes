@@ -66,6 +66,9 @@ async function check(browser,name,device){
   const popup=page.getByRole('dialog',{name:'Preview SYS-001'});
   await popup.waitFor();
   assert(await popup.isVisible(),'featured work must enlarge into a centred modal');
+  assert.equal(await popup.getAttribute('aria-modal'),'true','popup must act as an accessible modal');
+  assert(await popup.getByRole('button',{name:'Close project preview'}).evaluate(node=>node===document.activeElement),
+    'focus must move into the displayed preview');
   assert.equal(await popup.locator('img').count(),2,'two image-depth planes must render');
   assert.equal(await popup.locator('a[href^="https://"]').count(),1,'spotlight must link to a real deployment');
   assert.equal(await popup.locator('a').getAttribute('href'),'https://margin-language-reader.onrender.com/');
