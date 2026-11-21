@@ -42,7 +42,7 @@ function FieldControls({onReturn,onReset,visible}:{onReturn:()=>void;onReset:()=
         <select id="field-mood" value={selectedMood} onChange={e=>{
           const next=e.target.value;setSelectedMood(next);
           if(next==='Automatic'){solar.paused=false;setPaused(false);}
-          else {solar.phaseManual=(MOODS.indexOf(next as SerenityMood)+0.5)/4;solar.paused=true;setPaused(true);}
+          else {setCurrentMood(next as SerenityMood);solar.phaseManual=(MOODS.indexOf(next as SerenityMood)+0.5)/4;solar.paused=true;setPaused(true);}
         }}>
           <option>Automatic</option>
           {MOODS.map(m=><option key={m}>{m}</option>)}
