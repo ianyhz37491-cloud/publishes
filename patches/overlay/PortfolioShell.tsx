@@ -171,7 +171,6 @@ export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sce
         <div className="work-topline">
           <button type="button" className="work-back" onClick={()=>navigate('landing')} tabIndex={route==='work'?0:-1}>← Landing</button>
           <span className="work-topline-brand">INDEX OF WORK</span>
-          <span className="work-topline-meta">PORTFOLIO / 001</span>
         </div>
         <AnimatedCatalogue/>
         <div className="work-endnote">Portfolio entries have not been published yet. No sample projects are represented as completed work.</div>
