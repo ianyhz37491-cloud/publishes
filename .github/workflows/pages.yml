@@ -1,0 +1,81 @@
+name: Build and publish Zephyr landscape
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout public publishing repository
+        uses: actions/checkout@v4
+
+      - name: Install Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch pinned upstream Zephyr source
+        run: |
+          git clone --no-checkout https://github.com/RetherSzu/zephyr.git zephyr
+          cd zephyr
+          git checkout --detach bd74c81efa0c49a8f8acc6cab41550dd2f0d95b0
+
+      - name: Apply website landscape changes
+        run: |
+          python3 patches/apply.py zephyr
+          test -f zephyr/src/LiveLandscape.tsx
+          test -f zephyr/src/solar.ts
+          grep -q 'uCursorForce' zephyr/src/shaders/grass.vert
+          grep -q 'uDaylight' zephyr/src/shaders/grass.frag
+
+      - name: Install dependencies and compile production site
+        working-directory: zephyr
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build -- --base /publishes/
+          test -f dist/index.html
+
+      - name: Preserve upstream MIT licence and optional field recording
+        run: |
+          mkdir -p zephyr/dist/licenses zephyr/dist/audio
+          cp zephyr/LICENSE zephyr/dist/licenses/zephyr-MIT.txt
+          touch zephyr/dist/.nojekyll
+          curl -fsSL --retry 2 --max-time 25 \
+            'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gentle_breeze_and_birds_singing.ogg' \
+            -o /tmp/zephyr-meadow.ogg || true
+          if test -s /tmp/zephyr-meadow.ogg; then
+            EXPECTED='8a88bdb353adb8361e04e65f4db5fec671352ccf'
+            ACTUAL=$(sha1sum /tmp/zephyr-meadow.ogg | cut -d ' ' -f1)
+            if [ "$EXPECTED" = "$ACTUAL" ]; then
+              cp /tmp/zephyr-meadow.ogg zephyr/dist/audio/meadow.ogg
+            else
+              echo 'Field recording checksum mismatch; publishing synthesized wind fallback only.'
+            fi
+          fi
+
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: zephyr/dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
