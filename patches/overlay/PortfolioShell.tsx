@@ -81,7 +81,7 @@ function FieldControls({onReturn,onReset,visible}:{onReturn:()=>void;onReset:()=
   </aside>;
 }
 
-export function PortfolioShell({sceneAvailable,onResetCamera}:{sceneAvailable:boolean;onResetCamera:()=>void}){
+export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sceneAvailable:boolean;onResetCamera:()=>void;onRouteChange:(route:PortfolioRoute)=>void}){
   const [route,setRoute]=useState<PortfolioRoute>(()=>routeFromHash(window.location.hash));
   const [filter,setFilter]=useState<CategoryFilter>('ALL');
   const returnRoute=useRef<PortfolioRoute>('work');
@@ -92,6 +92,8 @@ export function PortfolioShell({sceneAvailable,onResetCamera}:{sceneAvailable:bo
     if(window.location.hash!==hash)window.location.hash=hash;
     setRoute(next);
   },[]);
+  useEffect(()=>onRouteChange(route),[route,onRouteChange]);
+  useEffect(()=>{if(!sceneAvailable && route==='field')navigate('work');},[sceneAvailable,route,navigate]);
   const enter=useCallback(()=>navigate('work'),[navigate]);
   const leaveField=useCallback(()=>navigate(returnRoute.current),[navigate]);
   useEffect(()=>{
