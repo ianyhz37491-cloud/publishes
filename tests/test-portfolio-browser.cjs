@@ -51,7 +51,9 @@ async function check(browser,name,device){
     await settings.click();
     await page.getByLabel('Light').selectOption('Night');
     assert.equal(await page.getByLabel('Light').inputValue(),'Night');
-    await page.getByText('Currently night').waitFor({timeout:10000});
+    await page.getByText('night · manual',{exact:true}).waitFor({timeout:10000});
+    await page.waitForTimeout(650);
+    assert(await page.getByText('night · manual',{exact:true}).isVisible(),'manual mode must remain labelled after telemetry refresh');
     assert(await page.getByRole('button',{name:'Resume lighting'}).isVisible());
     await page.screenshot({path:path.join(folder,name+'-field.png')});
     await page.getByRole('button',{name:/Return to work/}).click();
