@@ -29,9 +29,9 @@ edit("src/main.tsx","import App from '@/App.tsx';","import App from '@/LiveLands
 
 # Preserve upstream geometry, terrain, and the entire gust noise field.
 for old,new in [
-    ("const float SWAY_FREQ = 2.0;","const float SWAY_FREQ = 1.22;"),
-    ("const float SWAY_OSCIL_WEIGHT = 0.4;","const float SWAY_OSCIL_WEIGHT = 0.24;"),
-    ("const float SWAY_LEAN_WEIGHT = 0.6;","const float SWAY_LEAN_WEIGHT = 0.76;")
+    ("const float SWAY_FREQ = 2.0;","const float SWAY_FREQ = 0.68;"),
+    ("const float SWAY_OSCIL_WEIGHT = 0.4;","const float SWAY_OSCIL_WEIGHT = 0.16;"),
+    ("const float SWAY_LEAN_WEIGHT = 0.6;","const float SWAY_LEAN_WEIGHT = 0.84;")
 ]:
     edit("src/shaders/grass.vert",old,new)
 
@@ -64,17 +64,17 @@ section("src/shaders/grass.frag",
     baseColorAccent=mix(baseColorAccent,vec3(0.28,0.38,0.12),vAccent*vUv.y*0.24);""")
 edit("src/shaders/grass.frag",
      "    gl_FragColor = vec4(finalColor, 1.0);",
-     """    finalColor *= mix(0.17,1.0,uDaylight)*uSkyTint;
+     """    finalColor *= mix(0.34,1.0,uDaylight)*uSkyTint;
     gl_FragColor = vec4(finalColor,1.0);""")
 
 for a,b in [
-    ("windStrength: { value: 0.5,","windStrength: { value: 0.40,"),
-    ("bendAngle: { value: 0.8,","bendAngle: { value: 0.73,"),
-    ("gustAmount: { value: 0.5,","gustAmount: { value: 0.30,"),
-    ("gustFrequency: { value: 1,","gustFrequency: { value: 0.72,"),
-    ("driftAmount: { value: 0.2,","driftAmount: { value: 0.14,"),
-    ("waveStrength: { value: 0.4,","waveStrength: { value: 0.23,"),
-    ("turbAmount: { value: 0.03,","turbAmount: { value: 0.019,"),
+    ("windStrength: { value: 0.5,","windStrength: { value: 0.23,"),
+    ("bendAngle: { value: 0.8,","bendAngle: { value: 0.61,"),
+    ("gustAmount: { value: 0.5,","gustAmount: { value: 0.14,"),
+    ("gustFrequency: { value: 1,","gustFrequency: { value: 0.46,"),
+    ("driftAmount: { value: 0.2,","driftAmount: { value: 0.10,"),
+    ("waveStrength: { value: 0.4,","waveStrength: { value: 0.15,"),
+    ("turbAmount: { value: 0.03,","turbAmount: { value: 0.008,"),
 ]:
     edit("src/components/WindSystem.tsx",a,b)
 
@@ -93,7 +93,7 @@ edit("src/components/GrassField.tsx",
     const ray=useRef(new THREE.Raycaster());
     const hit=useRef(new THREE.Vector3());
     const pointer=useRef(new THREE.Vector2(1000,1000));
-    const strength=useRef(0);
+    const strength=useRef(0);\n    const previousPointer=useRef(new THREE.Vector2(1000,1000));
     const cursorParams=useControls('Cursor grass',{
         enabled:true,
         radius:{value:0.65,min:0.2,max:1.7},
@@ -155,7 +155,14 @@ edit("src/components/GrassField.tsx",
             strength.current += (goal-strength.current)*(1-Math.exp(-dt*(active?11:cursorParams.recovery)));
             shader.uniforms.uCursorPos.value.copy(pointer.current);
             shader.uniforms.uCursorRadius.value=cursorParams.radius;
-            shader.uniforms.uCursorForce.value=strength.current;""")
+            shader.uniforms.uCursorForce.value=strength.current;
+            const pointerDistance=active ? pointer.current.distanceTo(previousPointer.current) : 0;
+            // Audio follows actual ground-plane contact, never sky-only cursor motion.
+            solar.cursorMotion=active
+                ? Math.max(solar.cursorMotion*0.78,Math.min(1,pointerDistance*6))
+                : solar.cursorMotion*0.76;
+            solar.cursorForce=strength.current;
+            previousPointer.current.copy(pointer.current);""")
 edit("src/components/GrassField.tsx",
     "                    uSunDirection: { value: new THREE.Vector3() },",
     """                    uSunDirection: { value: new THREE.Vector3() },
@@ -170,6 +177,9 @@ files = {
     "src/LiveLandscape.tsx": "overlay/LiveLandscape.tsx",
     "src/solar.ts": "overlay/solar.ts",
     "src/live.css": "overlay/live.css",
+    "src/SerenityAtmosphere.tsx": "overlay/SerenityAtmosphere.tsx",
+    "src/SerenitySound.tsx": "overlay/SerenitySound.tsx",
+    "src/serenityCycle.ts": "overlay/serenityCycle.ts",
 }
 here=Path(__file__).resolve().parent
 for dest,source in files.items():
