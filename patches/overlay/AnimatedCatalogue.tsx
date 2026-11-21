@@ -5,10 +5,9 @@ import {CATEGORIES,filterProjects,type CategoryFilter,type ProjectRecord} from '
 const MOTION='cubic-bezier(.2,.73,.18,1)';
 const motionAllowed=()=>!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function ProjectTile({project,onPreview,onLeave}:{
+function ProjectTile({project,onPreview}:{
   project:ProjectRecord;
   onPreview:(project:ProjectRecord)=>void;
-  onLeave:()=>void;
 }){
   const published=project.status==='published';
   return <li className={`work-tile ${published?'work-tile-published':''}`}
@@ -17,7 +16,6 @@ function ProjectTile({project,onPreview,onLeave}:{
     {published ? <button className="project-preview-trigger" type="button"
       aria-label={`Preview project ${project.id}`}
       onPointerEnter={e=>{if(e.pointerType==='mouse'||e.pointerType==='pen')onPreview(project);}}
-      onPointerLeave={onLeave}
       onFocus={()=>onPreview(project)}
       onClick={()=>onPreview(project)}>
       <span className="work-tile-image work-tile-photo">
@@ -169,7 +167,7 @@ export function AnimatedCatalogue(){
     </div>
     <div className="work-grid-frame">
       <ol ref={grid} className="work-grid" aria-label={`${projects.length} reserved project slots`}>
-        {projects.map(project=><ProjectTile project={project} key={project.id} onPreview={openPreview} onLeave={cancelPreview}/>)}
+        {projects.map(project=><ProjectTile project={project} key={project.id} onPreview={openPreview}/>)}
       </ol>
       <div ref={ghostLayer} className="work-grid-ghosts" aria-hidden="true"/>
     </div>
