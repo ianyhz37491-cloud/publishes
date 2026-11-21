@@ -71,7 +71,7 @@ export function MeadowWorld(){
 /** Sparse outer tufts and distance fog provide a horizon, not another 160k-blade tile. */
 function DistantGrass(){
   const ref=useRef<THREE.InstancedMesh>(null);
-  const count=lowQuality?900:coarse?6500:16500;
+  const count=lowQuality?2600:coarse?6500:16500;
   const geom=useMemo(()=>grassGeometry(3,0.024,0.32,1.1),[]);
   const mat=useMemo(()=>new THREE.ShaderMaterial({
     side:THREE.DoubleSide,
