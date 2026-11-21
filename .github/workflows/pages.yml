@@ -46,23 +46,35 @@ jobs:
           npm run build -- --base /publishes/
           test -f dist/index.html
 
-      - name: Preserve upstream MIT licence and optional field recording
+      - name: Install verified CC0 countryside field recordings
         run: |
           mkdir -p zephyr/dist/licenses zephyr/dist/audio
           cp zephyr/LICENSE zephyr/dist/licenses/zephyr-MIT.txt
+          cp AUDIO_SOURCES.md zephyr/dist/audio/SOURCES.md
           touch zephyr/dist/.nojekyll
-          curl -fsSL --retry 2 --max-time 25 \
-            'https://commons.wikimedia.org/wiki/Special:Redirect/file/Gentle_breeze_and_birds_singing.ogg' \
-            -o /tmp/zephyr-meadow.ogg || true
-          if test -s /tmp/zephyr-meadow.ogg; then
-            EXPECTED='8a88bdb353adb8361e04e65f4db5fec671352ccf'
-            ACTUAL=$(sha1sum /tmp/zephyr-meadow.ogg | cut -d ' ' -f1)
-            if [ "$EXPECTED" = "$ACTUAL" ]; then
-              cp /tmp/zephyr-meadow.ogg zephyr/dist/audio/meadow.ogg
-            else
-              echo 'Field recording checksum mismatch; publishing synthesized wind fallback only.'
+          fetch_checked() {
+            local file="$1" source="$2" expected="$3"
+            curl -fSL --retry 3 --max-time 60 "$source" -o "zephyr/dist/audio/$file"
+            actual="$(git hash-object "zephyr/dist/audio/$file")"
+            if [ "$actual" != "$expected" ]; then
+              echo "::error::Recording $file did not match the pinned upstream Git blob"
+              exit 1
             fi
-          fi
+            test -s "zephyr/dist/audio/$file"
+            echo "Verified CC0 recording: $file"
+          }
+          fetch_checked fields.ogg \
+            https://raw.githubusercontent.com/Lelio88/dewdrop/35da4d0ec47d27bf582c7aa7102c40a278eff49b/assets/audio/fields_amb.ogg \
+            bf37de39398b06faec45211fc74296c9b12326b2
+          fetch_checked meadow.m4a \
+            https://raw.githubusercontent.com/abhinandansharma/ambiently/8b99d668e91957d80b66d419fae5cb0dba2be528/demo/public/sounds/meadow.m4a \
+            aba2139ac22d3e0bbae7ff1ff722fcac66692fb0
+          fetch_checked forest.m4a \
+            https://raw.githubusercontent.com/abhinandansharma/ambiently/8b99d668e91957d80b66d419fae5cb0dba2be528/demo/public/sounds/forest.m4a \
+            737dbbad5fbf249c78b73d6088da669000f6a5f3
+          fetch_checked night.m4a \
+            https://raw.githubusercontent.com/abhinandansharma/ambiently/8b99d668e91957d80b66d419fae5cb0dba2be528/demo/public/sounds/night.m4a \
+            ac20cb21a3dc6f0d2763db8bee60d102fd88ef5c
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
