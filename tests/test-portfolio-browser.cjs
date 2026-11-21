@@ -46,7 +46,7 @@ async function check(browser,name,device){
     console.warn(name+': WebGL2 unsupported by CI browser; field scene NOT visually verified');
   }
   await page.goBack();
-  assert.equal(new URL(page.url()).hash,'#/field'===new URL(page.url()).hash?'#/field':new URL(page.url()).hash);
+  assert(['#/field',''].includes(new URL(page.url()).hash),'back must restore a previous hash route');
   assert.equal(errors.length,0,'uncaught browser errors: '+errors.join(' | '));
   console.log('PASS browser interactions '+name+' (field enabled: '+await field.isEnabled().catch(()=>false)+')');
   await context.close();
