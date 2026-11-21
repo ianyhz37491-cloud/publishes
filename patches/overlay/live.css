@@ -279,6 +279,18 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .field-photo-toggle{white-space:nowrap}
 .field-actions [disabled]{opacity:.45;cursor:not-allowed}
 @media(max-width:620px){
+ .field-controls{left:17px;bottom:17px;max-width:calc(100vw - 34px)}
+ .field-actions{column-gap:7px;row-gap:7px;max-width:calc(100vw - 34px)}
+ .field-actions button{
+   min-height:38px;padding:8px 10px;
+   border:1px solid rgba(255,255,255,.42);
+   background:rgba(10,30,31,.48);
+   border-radius:1px;color:#fff;
+   font:500 11px/1.35 var(--sans);letter-spacing:.015em;
+   text-shadow:0 1px 6px rgba(0,0,0,.6);
+   backdrop-filter:blur(4px)
+ }
+ .field-actions button:focus-visible{outline:2px solid #fff;outline-offset:2px}
  .photo-depth-background,.photo-depth-stems,.photo-depth-near{object-position:53% 50%}
  .photo-depth-corner{top:65px;left:19px;font-size:8px}
  .photo-depth-tools{right:18px;bottom:113px}
