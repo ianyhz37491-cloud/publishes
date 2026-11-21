@@ -3,16 +3,8 @@ import {CATEGORIES,filterProjects,type CategoryFilter,type ProjectRecord} from '
 import {SerenitySound} from '@/SerenitySound';
 import {solar} from '@/solar';
 import type {SerenityMood} from '@/serenityCycle';
+import {routeFromHash,hashForRoute,type PortfolioRoute} from '@/portfolioRoutes';
 
-export type PortfolioRoute='landing'|'work'|'field';
-export function routeFromHash(hash:string):PortfolioRoute {
-  if(hash==='#/field')return 'field';
-  if(hash==='#/work')return 'work';
-  return 'landing';
-}
-export function hashForRoute(route:PortfolioRoute):string {
-  return route==='landing'?'#/':`#/${route}`;
-}
 const MOODS:SerenityMood[]=['Sunrise','Daylight','Sunset','Night'];
 
 function ProjectTile({project}:{project:ProjectRecord}){
