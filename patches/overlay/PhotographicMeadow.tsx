@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import {solar} from '@/solar';
 
 const FILES={
   background:'media/meadow-depth/background.webp',
@@ -35,7 +36,14 @@ export function PhotographicMeadow({active}:Props){
     return()=>reduced.removeEventListener('change',change);
   },[]);
   useEffect(()=>{
-    if(!active||missing||!stage.current)return;
+    if(!active||missing||!stage.current){
+      solar.cursorMotion=0;
+      return;
+    }
+    if(!isMoving){
+      solar.cursorMotion=0;
+      return;
+    }
     let last=performance.now(),elapsed=0;
     const draw=(now:number)=>{
       const dt=Math.min(.07,Math.max(0,(now-last)/1000));last=now;
@@ -45,6 +53,7 @@ export function PhotographicMeadow({active}:Props){
       smooth.current.y+=(pointer.current.y-smooth.current.y)*easing;
       const x=isMoving?smooth.current.x:0,y=isMoving?smooth.current.y:0;
       const node=stage.current;
+      solar.cursorMotion*=Math.exp(-dt*4.6);
       if(node){
         const drift=isMoving?Math.sin(elapsed*.34)*.014:0;
         const bob=isMoving?Math.sin(elapsed*.71)*.016:0;
@@ -65,8 +74,11 @@ export function PhotographicMeadow({active}:Props){
   const onMove=(clientX:number,clientY:number)=>{
     if(!active||!root.current)return;
     const r=root.current.getBoundingClientRect();
-    pointer.current.x=Math.max(-1,Math.min(1,(clientX-r.left-r.width/2)/(r.width/2)));
-    pointer.current.y=Math.max(-1,Math.min(1,(clientY-r.top-r.height/2)/(r.height/2)));
+    const nx=Math.max(-1,Math.min(1,(clientX-r.left-r.width/2)/(r.width/2)));
+    const ny=Math.max(-1,Math.min(1,(clientY-r.top-r.height/2)/(r.height/2)));
+    solar.cursorMotion=Math.min(1,Math.hypot(nx-pointer.current.x,ny-pointer.current.y)*1.7);
+    pointer.current.x=nx;
+    pointer.current.y=ny;
   };
   return <div ref={root} className={`photographic-meadow ${active?'is-active':''}`}
     aria-hidden={!active} data-depth-scene="photographic"
