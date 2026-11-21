@@ -41,7 +41,10 @@ function AmbientControls(){
   </div>;
 }
 
-function FieldControls({onReturn,onReset,visible}:{onReturn:()=>void;onReset:()=>void;visible:boolean}){
+function FieldControls({onReturn,onReset,visible,photoMode,onPhotoModeChange}:{
+  onReturn:()=>void;onReset:()=>void;visible:boolean;
+  photoMode:boolean;onPhotoModeChange:(next:boolean)=>void;
+}){
   const [open,setOpen]=useState(false);
   const [paused,setPaused]=useState(solar.paused);
   const [duration,setDuration]=useState(solar.cycleSeconds);
@@ -56,8 +59,16 @@ function FieldControls({onReturn,onReset,visible}:{onReturn:()=>void;onReset:()=
   return <aside className={`field-controls ${visible?'field-controls-visible':''}`} aria-hidden={!visible}>
     <div className="field-actions">
       <button type="button" onClick={onReturn}>← Return to work</button>
+      <button type="button" className="field-photo-toggle"
+        aria-pressed={photoMode}
+        onClick={()=>{setOpen(false);onPhotoModeChange(!photoMode);}}>
+        {photoMode?'3D meadow ↩':'Photographic study ↗'}
+      </button>
       <button type="button" aria-expanded={open} aria-controls="field-settings"
-        onClick={()=>setOpen(v=>!v)}>{open?'Close settings':'Field settings'} <span aria-hidden="true">{open?'−':'+'}</span></button>
+        onClick={()=>setOpen(v=>!v)} disabled={photoMode}
+        title={photoMode?'Lighting controls apply to the 3D meadow':'Change field settings'}>
+        {open?'Close settings':'Field settings'} <span aria-hidden="true">{open?'−':'+'}</span>
+      </button>
     </div>
     <div className="field-settings" id="field-settings" hidden={!open||!visible}>
       <p className="field-current">{selectedMood==='Automatic'?`Currently ${currentMood.toLowerCase()}`:`${selectedMood.toLowerCase()} · manual`}</p>
@@ -101,7 +112,10 @@ function FieldControls({onReturn,onReset,visible}:{onReturn:()=>void;onReset:()=
   </aside>;
 }
 
-export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sceneAvailable:boolean;onResetCamera:()=>void;onRouteChange:(route:PortfolioRoute)=>void}){
+export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange,photoMode,onPhotoModeChange}:{
+  sceneAvailable:boolean;onResetCamera:()=>void;onRouteChange:(route:PortfolioRoute)=>void;
+  photoMode:boolean;onPhotoModeChange:(next:boolean)=>void;
+}){
   const [route,setRoute]=useState<PortfolioRoute>(()=>routeFromHash(window.location.hash));
   const returnRoute=useRef<PortfolioRoute>('work');
   const touchStart=useRef<number|null>(null);
@@ -180,9 +194,10 @@ export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sce
         tabIndex={route==='work'?0:-1}>{sceneAvailable?'Enter field ↗':'Field unavailable'}</button>
     </section>
     <section ref={fieldSection} tabIndex={-1} className="portfolio-field" aria-label="Interactive field" aria-hidden={route!=='field'}>
-      <div className="field-tip">Move to brush the grass · Drag to look around</div>
+      <div className="field-tip">{photoMode?'Move pointer to reveal photographic depth · Return to 3D for free roam':'Move to brush the grass · Drag to look around'}</div>
     </section>
-    <FieldControls onReturn={leaveField} onReset={onResetCamera} visible={route==='field'}/>
+    <FieldControls onReturn={leaveField} onReset={onResetCamera}
+      visible={route==='field'} photoMode={photoMode} onPhotoModeChange={onPhotoModeChange}/>
     <AmbientControls/>
   </div>;
 }
