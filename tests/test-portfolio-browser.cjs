@@ -141,6 +141,7 @@ async function check(browser,name,device){
     assert.equal(await photo.locator('.photo-depth-orb').count(),0,'hide object control must actually remove it');
     await photo.getByRole('button',{name:'Show object'}).click();
     assert.equal(await photo.locator('.photo-depth-orb').count(),1,'object must return');
+    await page.screenshot({path:path.join(folder,name+'-photographic-depth.png')});
     if(!device.hasTouch){
       await page.emulateMedia({reducedMotion:'no-preference'});
       await page.waitForTimeout(180);
@@ -151,7 +152,7 @@ async function check(browser,name,device){
       );
       assert(px.endsWith('px')&&Math.abs(parseFloat(px))>.1,'photographic grass plane must track pointer parallax');
     }
-    await page.screenshot({path:path.join(folder,name+'-photographic-depth.png')});
+    await page.screenshot({path:path.join(folder,name+'-photographic-motion.png')});
     assert(await page.getByRole('button',{name:'Hear the landscape'}).isVisible(),
       'existing audio stays accessible in photographic mode');
     await page.getByRole('button',{name:'3D meadow'}).click();
