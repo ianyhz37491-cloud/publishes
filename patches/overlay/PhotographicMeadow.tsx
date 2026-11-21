@@ -46,8 +46,12 @@ export function PhotographicMeadow({active}:Props){
       if(node){
         const drift=isMoving?Math.sin(elapsed*.34)*.014:0;
         const bob=isMoving?Math.sin(elapsed*.71)*.016:0;
-        node.style.setProperty('--parallax-x',String(x));
-        node.style.setProperty('--parallax-y',String(y));
+        node.style.setProperty('--photo-bg-x',`${(-x*5).toFixed(2)}px`);
+        node.style.setProperty('--photo-bg-y',`${(-y*3).toFixed(2)}px`);
+        node.style.setProperty('--photo-stem-x',`${(x*9).toFixed(2)}px`);
+        node.style.setProperty('--photo-stem-y',`${(y*6).toFixed(2)}px`);
+        node.style.setProperty('--photo-near-x',`${(x*17).toFixed(2)}px`);
+        node.style.setProperty('--photo-near-y',`${(y*11).toFixed(2)}px`);
         node.style.setProperty('--orb-left',`${((.49+x*.20+drift)*100).toFixed(2)}%`);
         node.style.setProperty('--orb-top',`${((.57+y*.135+bob)*100).toFixed(2)}%`);
       }
