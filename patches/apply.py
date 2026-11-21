@@ -101,6 +101,7 @@ edit("src/components/GrassField.tsx",
     const pointer=useRef(new THREE.Vector2(1000,1000));
     const strength=useRef(0);
     const previousPointer=useRef(new THREE.Vector2(1000,1000));
+    const pointerWasActive=useRef(false);
     const cursorParams=useControls('Cursor grass',{
         enabled:true,
         radius:{value:0.65,min:0.2,max:1.7},
@@ -163,7 +164,8 @@ edit("src/components/GrassField.tsx",
             shader.uniforms.uCursorPos.value.copy(pointer.current);
             shader.uniforms.uCursorRadius.value=cursorParams.radius;
             shader.uniforms.uCursorForce.value=strength.current;
-            const pointerDistance=active ? pointer.current.distanceTo(previousPointer.current) : 0;
+            const pointerDistance=(active&&pointerWasActive.current) ? pointer.current.distanceTo(previousPointer.current) : 0;
+            pointerWasActive.current=active;
             // Audio follows actual ground-plane contact, never sky-only cursor motion.
             solar.cursorMotion=active
                 ? Math.max(solar.cursorMotion*0.78,Math.min(1,pointerDistance*6))
