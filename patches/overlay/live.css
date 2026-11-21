@@ -1,0 +1,12 @@
+*{box-sizing:border-box}html,body,#root{width:100%;height:100%;margin:0}body{overflow:hidden}
+.landscape-root{position:relative;width:100%;height:100%;overflow:hidden;background:#101d2b}
+.landscape-ui{position:absolute;bottom:19px;left:22px;display:flex;gap:22px;align-items:end;pointer-events:none;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-shadow:0 1px 8px #0009}
+.landscape-clock{display:flex;flex-direction:column;gap:3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.landscape-clock strong{font-weight:450;font-size:23px;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.landscape-audio{display:flex;align-items:center;gap:9px;pointer-events:auto;padding-bottom:2px}
+.landscape-audio button,.landscape-audio label{cursor:pointer;color:#fff;background:#0f1c257d;border:1px solid #fff6;backdrop-filter:blur(9px);border-radius:100px;padding:8px 12px;font:500 12px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;white-space:nowrap}
+.landscape-audio button:hover,.landscape-audio label:hover{background:#0f1c25c2}
+.landscape-audio button:focus-visible,.landscape-audio label:focus-within{outline:2px solid white;outline-offset:3px}
+.landscape-audio label input{width:1px;height:1px;position:absolute;opacity:0}
+.landscape-cue{pointer-events:none;position:absolute;right:18px;bottom:22px;color:#fffd;text-shadow:0 1px 7px #000a;font:400 11px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+@media(max-width:700px){.landscape-ui{left:12px;bottom:12px;gap:12px}.landscape-cue{display:none}.landscape-clock strong{font-size:19px}.landscape-audio label{display:none}}
