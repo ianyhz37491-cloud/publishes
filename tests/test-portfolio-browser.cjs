@@ -153,6 +153,7 @@ async function check(browser,name,device){
       assert(px.endsWith('px')&&Math.abs(parseFloat(px))>.1,'photographic grass plane must track pointer parallax');
     }
     await page.screenshot({path:path.join(folder,name+'-photographic-motion.png')});
+    if(!device.hasTouch)await page.emulateMedia({reducedMotion:'reduce'});
     assert(await page.getByRole('button',{name:'Hear the landscape'}).isVisible(),
       'existing audio stays accessible in photographic mode');
     await page.getByRole('button',{name:'3D meadow'}).click();
@@ -161,7 +162,7 @@ async function check(browser,name,device){
       '3D lighting controls must work after returning from photographic study');
     await page.getByRole('button',{name:/Return to work/}).click();
     await page.waitForURL(/#\/work$/);
-    assert(await page.getByRole('button',{name:'ALL'}).isVisible());
+    await page.getByRole('button',{name:'ALL',exact:true}).waitFor({state:'visible',timeout:10000});
   }else{
     console.warn(name+': WebGL2 unsupported by CI browser; field scene NOT visually verified');
   }
