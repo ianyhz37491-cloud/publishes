@@ -118,6 +118,44 @@ async function check(browser,name,device){
     await page.screenshot({path:path.join(folder,name+'-field.png')});
     await page.getByRole('button',{name:'Close settings'}).click();
     await page.screenshot({path:path.join(folder,name+'-field-scene.png')});
+
+    // Real photographic asset layers must load and preserve a genuinely masked,
+    // interactive object *behind* photographed grass, not atop a flat image.
+    await page.getByRole('button',{name:'Photographic study'}).click();
+    const photo=page.locator('.photographic-meadow.is-active');
+    await photo.waitFor();
+    const photoAssets=['.photo-depth-background','.photo-depth-stems','.photo-depth-near'];
+    for(const selector of photoAssets){
+      const element=photo.locator(selector);
+      await element.waitFor({state:'visible'});
+      await page.waitForFunction(
+        selector=>{
+          const image=document.querySelector(selector);
+          return image instanceof HTMLImageElement && image.complete && image.naturalWidth>=1000;
+        },selector,{timeout:15000}
+      );
+    }
+    assert(await photo.locator('.photo-depth-orb').isVisible(),'orb must render behind alpha-stem plane');
+    const hideObject=photo.getByRole('button',{name:'Hide object'});
+    await hideObject.click();
+    assert.equal(await photo.locator('.photo-depth-orb').count(),0,'hide object control must actually remove it');
+    await photo.getByRole('button',{name:'Show object'}).click();
+    assert.equal(await photo.locator('.photo-depth-orb').count(),1,'object must return');
+    if(!device.hasTouch){
+      await page.mouse.move(150,220);
+      await page.waitForTimeout(500);
+      const px=await photo.locator('.photo-depth-stage').evaluate(
+        e=>getComputedStyle(e).getPropertyValue('--photo-stem-x').trim()
+      );
+      assert(px.endsWith('px')&&Math.abs(parseFloat(px))>.1,'photographic grass plane must track pointer parallax');
+    }
+    await page.screenshot({path:path.join(folder,name+'-photographic-depth.png')});
+    assert(await page.getByRole('button',{name:'Hear the landscape'}).isVisible(),
+      'existing audio stays accessible in photographic mode');
+    await page.getByRole('button',{name:'3D meadow'}).click();
+    await photo.waitFor({state:'hidden'});
+    assert(await page.getByRole('button',{name:'Field settings'}).isEnabled(),
+      '3D lighting controls must work after returning from photographic study');
     await page.getByRole('button',{name:/Return to work/}).click();
     await page.waitForURL(/#\/work$/);
     assert(await page.getByRole('button',{name:'ALL'}).isVisible());
