@@ -22,14 +22,32 @@ const slots: ReadonlyArray<readonly [Category,string]> = [
   ['SYSTEMS','SYS'],['EXPERIMENTS','EXP'],['RESEARCH','RES'],['VISUAL','VIS']
 ];
 
-/** Stable IDs, independent of sort or filter order. Actual projects are added later. */
-export const PROJECTS: readonly ProjectRecord[] = slots.flatMap(([category,prefix],group) =>
-  Array.from({length:3},(_,index)=>({
-    id:`${prefix}-${String(index+1).padStart(3,'0')}`,
-    category,
-    status:'placeholder' as const,
-    order:index*4+group
-  }))
+/**
+ * One verified project slot is open. Its public catalogue identity stays
+ * anonymous until a broader naming convention is selected.
+ *
+ * The remote beta may be temporarily unavailable while its free host sleeps.
+ * Do not imply robust PDF, lexical accuracy or cloud-sync functionality.
+ */
+const readerProject: ProjectRecord = {
+  id:'SYS-001',
+  category:'SYSTEMS',
+  status:'published',
+  description:'A browser-based multilingual reading environment for books and documents, with contextual word lookup and paragraph-aligned translation.',
+  thumbnail:'media/reader-editorial.jpg',
+  liveUrl:'https://margin-language-reader.onrender.com/',
+  provenance:['projects/PR-18-language-reader/web/README.md'],
+  order:0
+};
+
+/** Stable IDs are unaffected by category filtering or release ordering. */
+export const PROJECTS:readonly ProjectRecord[] = slots.flatMap(([category,prefix],group)=>
+  Array.from({length:3},(_,index)=>{
+    const id=`${prefix}-${String(index+1).padStart(3,'0')}`;
+    return id===readerProject.id ? readerProject : {
+      id,category,status:'placeholder' as const,order:index*4+group
+    };
+  })
 ).sort((a,b)=>a.order-b.order);
 
 export function filterProjects(category:CategoryFilter): readonly ProjectRecord[] {

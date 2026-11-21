@@ -24,7 +24,14 @@ assert(wake.sample(0,0.08)<0.003,'wake must recover within a few seconds');
 const {PROJECTS,filterProjects,CATEGORIES}=load('projectCatalog.ts');
 assert.equal(PROJECTS.length,12);
 assert.equal(new Set(PROJECTS.map(p=>p.id)).size,12,'serial codes must be unique');
-assert(PROJECTS.every(p=>p.status==='placeholder'&&!p.title&&!p.liveUrl&&!p.thumbnail));
+const published=PROJECTS.filter(p=>p.status==='published');
+assert.equal(published.length,1,'exactly one project is publicly disclosed');
+assert.equal(published[0].id,'SYS-001');
+assert.equal(published[0].title,undefined,'catalogue naming remains unresolved');
+assert.equal(published[0].thumbnail,'media/reader-editorial.jpg');
+assert(published[0].liveUrl.startsWith('https://'));
+assert.equal(PROJECTS.filter(p=>p.status==='placeholder').length,11);
+assert(PROJECTS.filter(p=>p.status==='placeholder').every(p=>!p.title&&!p.liveUrl&&!p.thumbnail));
 for(const category of CATEGORIES){
   const items=filterProjects(category);
   assert.equal(items.length,category==='ALL'?12:3,'filter must select prototype records');

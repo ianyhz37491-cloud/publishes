@@ -41,6 +41,20 @@ jobs:
           grep -q 'uWakeTexture' zephyr/src/shaders/grass.vert
           grep -q 'uDaylight' zephyr/src/shaders/grass.frag
 
+      - name: Install licensed editorial photography
+        run: |
+          mkdir -p zephyr/public/media
+          curl --fail --location --retry 3 --max-time 75 \
+            'https://images.unsplash.com/photo-1752347285110-06289f125499?fm=jpg&fit=crop&w=1400&q=80' \
+            -o zephyr/public/media/reader-editorial.jpg
+          python3 - <<'PY'
+          from pathlib import Path
+          image=Path('zephyr/public/media/reader-editorial.jpg').read_bytes()
+          assert len(image)>25000 and image[:3]==bytes.fromhex('ffd8ff'), 'Licensed editorial photograph missing or invalid'
+          print('Verified licensed editorial JPEG:',len(image),'bytes')
+          PY
+          cp PHOTO_SOURCES.md zephyr/public/media/PHOTO_SOURCES.md
+
       - name: Install dependencies and compile production site
         working-directory: zephyr
         run: |

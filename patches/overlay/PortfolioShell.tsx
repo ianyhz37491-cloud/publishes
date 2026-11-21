@@ -173,7 +173,7 @@ export function PortfolioShell({sceneAvailable,onResetCamera,onRouteChange}:{sce
           <span className="work-topline-brand">INDEX OF WORK</span>
         </div>
         <AnimatedCatalogue/>
-        <div className="work-endnote">Portfolio entries have not been published yet. No sample projects are represented as completed work.</div>
+        <div className="work-endnote">One project is available to explore. The remaining spaces are reserved for future published work.</div>
       </div>
       <button type="button" className="work-free-roam" disabled={!sceneAvailable} onClick={openField}
         title={!sceneAvailable?'3D landscape unavailable in this browser':undefined}
