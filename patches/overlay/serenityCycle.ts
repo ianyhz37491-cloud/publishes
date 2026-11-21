@@ -42,7 +42,8 @@ export function momentAt(phase:number):SerenityMoment {
   } else { // Moonlit darkness, not a black screen.
     daylight=0.45;
     elevation=-0.18-0.08*Math.sin(Math.PI*progress);
-    azimuth=-1.25;
+    // Carry the sun continuously beneath the horizon back toward the east.
+    azimuth=1.25+(2*Math.PI-2.5)*e;
     twilight=0;
   }
   const darkness=(1-daylight)/0.55;
