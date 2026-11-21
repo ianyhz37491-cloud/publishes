@@ -94,6 +94,15 @@ def process(source:Path,out:Path)->dict:
     Image.fromarray(background).save(out/"background.webp",format="WEBP",quality=86,method=6)
     Image.fromarray(np.dstack((rgb,alpha))).save(out/"foreground.webp",
             format="WEBP",lossless=True,method=6)
+    # Two *independently moving* photographed planes, with real alpha edges.
+    yrows=np.linspace(0,1,h,dtype=np.float32)[:,None]
+    far_weight=(1-smoothstep(.59,.83,yrows))
+    stem_alpha=np.uint8(alpha.astype(np.float32)*far_weight)
+    near_alpha=np.uint8(alpha.astype(np.float32)*(1-far_weight))
+    Image.fromarray(np.dstack((rgb,stem_alpha))).save(out/"stems.webp",
+            format="WEBP",lossless=True,method=6)
+    Image.fromarray(np.dstack((rgb,near_alpha))).save(out/"near.webp",
+            format="WEBP",lossless=True,method=6)
     Image.fromarray(alpha).save(out/"matte.png")
     transparent=float((alpha[h//3:int(h*.65)]>175).mean())
     bottom=float((alpha[int(h*.94):]>230).mean())
