@@ -15,17 +15,31 @@ type Props={
  */
 export function ProjectSpotlight({project,onClose,onHover,onLeave}:Props){
   const panel=useRef<HTMLDivElement>(null);
+  const closeButton=useRef<HTMLButtonElement>(null);
   useEffect(()=>{
     if(!project)return;
-    const handle=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.preventDefault();onClose();}};
+    const previous=document.activeElement instanceof HTMLElement?document.activeElement:null;
+    closeButton.current?.focus({preventScroll:true});
+    const handle=(event:KeyboardEvent)=>{
+      if(event.key==='Escape'){event.preventDefault();onClose();return;}
+      if(event.key!=='Tab')return;
+      const controls=Array.from(panel.current?.querySelectorAll<HTMLElement>('a[href],button:not([disabled])')||[]);
+      if(!controls.length)return;
+      const first=controls[0],last=controls[controls.length-1];
+      if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+      else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+    };
     window.addEventListener('keydown',handle);
-    return ()=>window.removeEventListener('keydown',handle);
+    return ()=>{
+      window.removeEventListener('keydown',handle);
+      previous?.focus({preventScroll:true});
+    };
   },[project,onClose]);
   if(!project||project.status!=='published')return null;
   const photo=new URL(project.thumbnail||'',document.baseURI).href;
   const explore=project.liveUrl;
   return createPortal(<div className="project-spotlight-scrim" onClick={onClose}>
-    <section className="project-spotlight" role="dialog" aria-modal="false"
+    <section className="project-spotlight" role="dialog" aria-modal="true"
       aria-label={`Preview ${project.id}`}
       ref={panel}
       onClick={event=>event.stopPropagation()}
@@ -47,7 +61,7 @@ export function ProjectSpotlight({project,onClose,onHover,onLeave}:Props){
       <div className="project-spotlight-content">
         <div className="project-spotlight-top">
           <span>SELECTED WORK / {project.id}</span>
-          <button type="button" className="project-spotlight-close" aria-label="Close project preview" onClick={onClose}>×</button>
+          <button type="button" ref={closeButton} className="project-spotlight-close" aria-label="Close project preview" onClick={onClose}>×</button>
         </div>
         <div className="project-spotlight-copy">
           <span className="project-spotlight-overline">01 / LANGUAGE & READING</span>
