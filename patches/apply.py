@@ -26,8 +26,8 @@ def section(rel, begin, end, replacement):
     p.write_text(src[:start]+replacement+src[finish:])
 
 edit("src/main.tsx","import App from '@/App.tsx';","import App from '@/LiveLandscape.tsx';")
-edit("index.html","<title>zephyr</title>", """<title>Serenity — Living Landscape</title>
-        <meta name="description" content="A quiet, interactive grassland with sunrise, daylight, sunset and moonlit night." />
+edit("index.html","<title>zephyr</title>", """<title>Interactive portfolio — Serenity</title>
+        <meta name="description" content="An interactive portfolio with a living grassland and project catalogue." />
         <meta name="theme-color" content="#192d43" />""")
 
 # Preserve upstream geometry, terrain, and the entire gust noise field.
@@ -39,18 +39,18 @@ for old,new in [
     edit("src/shaders/grass.vert",old,new)
 
 edit("src/shaders/grass.vert","uniform vec2 uColorSeed;", """uniform vec2 uColorSeed;
-uniform vec2 uCursorPos;
-uniform float uCursorRadius;
-uniform float uCursorForce;""")
+uniform sampler2D uWakeTexture;""")
 edit("src/shaders/grass.vert",
     "    bentPos.xz += turbulence;",
     """    bentPos.xz += turbulence;
-    // Localised GPU deformation. Roots stay anchored and wind continues unchanged.
-    vec2 away = worldPos.xz-uCursorPos;
-    float proximity = 1.0-smoothstep(0.05,uCursorRadius,length(away));
-    float push = proximity*proximity*uCursorForce*pow(vUv.y,1.9);
-    bentPos.xz += away/max(length(away),0.03)*push*0.31;
-    bentPos.y -= push*0.10;""")
+    // Persistent wake overlays existing wind without moving blade roots.
+    vec2 wakeUv=(worldPos.xz+vec2(5.0))*0.1;
+    vec4 wake=texture2D(uWakeTexture,clamp(wakeUv,vec2(0.0),vec2(1.0)));
+    float inField=step(0.0,wakeUv.x)*step(wakeUv.x,1.0)*step(0.0,wakeUv.y)*step(wakeUv.y,1.0);
+    float rootMask=pow(vUv.y,1.85);
+    vec2 wakeDirection=(wake.rg*2.0-1.0)*wake.b*inField;
+    bentPos.xz += wakeDirection*0.72*rootMask;
+    bentPos.y -= wake.b*0.065*rootMask*inField;""")
 
 edit("src/shaders/grass.frag","uniform vec3 uSunDirection;", """uniform vec3 uSunDirection;
 uniform float uDaylight;
@@ -92,7 +92,8 @@ edit("src/components/GrassField.tsx",
     "import { useFrame, useThree } from '@react-three/fiber';")
 edit("src/components/GrassField.tsx",
     "import { useWindStore } from '@/stores/windStore';",
-    "import { useWindStore } from '@/stores/windStore';\nimport { solar } from '@/solar';")
+    "import { useWindStore } from '@/stores/windStore';\nimport { solar } from '@/solar';
+import { WakeField } from '@/WakeField';")
 edit("src/components/GrassField.tsx",
     "    const fieldRef = useRef<THREE.InstancedMesh>(null);",
     """    const fieldRef = useRef<THREE.InstancedMesh>(null);
@@ -102,15 +103,17 @@ edit("src/components/GrassField.tsx",
     const ray=useRef(new THREE.Raycaster());
     const hit=useRef(new THREE.Vector3());
     const pointer=useRef(new THREE.Vector2(1000,1000));
-    const strength=useRef(0);
     const previousPointer=useRef(new THREE.Vector2(1000,1000));
     const pointerWasActive=useRef(false);
-    const cursorParams=useControls('Cursor grass',{
-        enabled:true,
-        radius:{value:0.65,min:0.2,max:1.7},
-        force:{value:0.85,min:0,max:1.6},
-        recovery:{value:4,min:0.5,max:10},
-    });""")
+    const wake=useMemo(()=>new WakeField(128),[]);
+    const wakeTexture=useMemo(()=>{
+        const texture=new THREE.DataTexture(wake.pixels,wake.size,wake.size,THREE.RGBAFormat);
+        texture.magFilter=THREE.LinearFilter;
+        texture.minFilter=THREE.LinearFilter;
+        texture.generateMipmaps=false;
+        texture.needsUpdate=true;
+        return texture;
+    },[wake]);""")
 edit("src/components/GrassField.tsx",
     """    useEffect(() => {
         return () => geometry.dispose();
@@ -118,18 +121,23 @@ edit("src/components/GrassField.tsx",
     """    useEffect(() => {
         const canvas=gl.domElement;
         const move=(e:PointerEvent)=>{
+            if(!solar.interactionEnabled)return;
             const b=canvas.getBoundingClientRect();
             if(!b.width||!b.height)return;
             cursorNdc.current.set(2*(e.clientX-b.left)/b.width-1,1-2*(e.clientY-b.top)/b.height);
             inside.current=true;
         };
-        const leave=()=>{inside.current=false;};
+        const leave=()=>{inside.current=false;pointerWasActive.current=false;};
         canvas.addEventListener('pointermove',move,{passive:true});
         canvas.addEventListener('pointerleave',leave);
+        canvas.addEventListener('pointerup',leave);
+        canvas.addEventListener('pointercancel',leave);
         window.addEventListener('blur',leave);
         return ()=>{
             canvas.removeEventListener('pointermove',move);
             canvas.removeEventListener('pointerleave',leave);
+            canvas.removeEventListener('pointerup',leave);
+            canvas.removeEventListener('pointercancel',leave);
             window.removeEventListener('blur',leave);
         };
     },[gl]);
@@ -142,47 +150,52 @@ edit("src/components/GrassField.tsx",
             shader.uniforms.uDaylight.value=solar.daylight;
             (shader.uniforms.uSkyTint.value as THREE.Color).copy(solar.tint);
 
-            let active=false;
-            if(cursorParams.enabled && inside.current) {
+            let active=solar.interactionEnabled&&inside.current;
+            if(active){
                 ray.current.setFromCamera(cursorNdc.current,camera);
                 const r=ray.current.ray;
                 if(Math.abs(r.direction.y)>0.0001){
                     let distance=-r.origin.y/r.direction.y;
-                    for(let i=0;distance>0 && i<3;i++){
+                    for(let i=0;distance>0&&i<3;i++){
                         r.at(distance,hit.current);
                         distance=(getHeight(hit.current.x,-hit.current.z)-r.origin.y)/r.direction.y;
                     }
                     if(distance>0){
                         r.at(distance,hit.current);
-                        if(Math.abs(hit.current.x)<5&&Math.abs(hit.current.z)<5){
+                        if(Math.abs(hit.current.x)<5&&Math.abs(hit.current.z)<5)
                             pointer.current.set(hit.current.x,hit.current.z);
-                            active=true;
-                        }
-                    }
-                }
+                        else active=false;
+                    }else active=false;
+                }else active=false;
             }
             const dt=Math.min(_delta,0.05);
-            const goal=active ? cursorParams.force : 0;
-            strength.current += (goal-strength.current)*(1-Math.exp(-dt*(active?11:cursorParams.recovery)));
-            shader.uniforms.uCursorPos.value.copy(pointer.current);
-            shader.uniforms.uCursorRadius.value=cursorParams.radius;
-            shader.uniforms.uCursorForce.value=strength.current;
-            const pointerDistance=(active&&pointerWasActive.current) ? pointer.current.distanceTo(previousPointer.current) : 0;
+            let motion=0;
+            if(active&&pointerWasActive.current){
+                const distance=pointer.current.distanceTo(previousPointer.current);
+                if(distance>0.014&&distance<6){
+                    const force=Math.min(1,Math.max(0.4,distance/Math.max(dt,0.016)*0.20));
+                    wake.paint(
+                        {x:previousPointer.current.x,z:previousPointer.current.y},
+                        {x:pointer.current.x,z:pointer.current.y},force
+                    );
+                    motion=Math.min(1,distance*4);
+                }
+            }
+            if(wake.tick(dt))wakeTexture.needsUpdate=true;
+            solar.cursorMotion+=(motion-solar.cursorMotion)*Math.min(1,dt*(motion>solar.cursorMotion?8:4));
+            solar.cursorForce=motion;
             pointerWasActive.current=active;
-            // Audio follows actual ground-plane contact, never sky-only cursor motion.
-            solar.cursorMotion=active
-                ? Math.max(solar.cursorMotion*0.78,Math.min(1,pointerDistance*6))
-                : solar.cursorMotion*0.76;
-            solar.cursorForce=strength.current;
             previousPointer.current.copy(pointer.current);""")
 edit("src/components/GrassField.tsx",
     "                    uSunDirection: { value: new THREE.Vector3() },",
     """                    uSunDirection: { value: new THREE.Vector3() },
                     uDaylight: {value:1},
                     uSkyTint: {value:new THREE.Color('#ffffff')},
-                    uCursorPos: {value:new THREE.Vector2(1000,1000)},
-                    uCursorRadius: {value:0.65},
-                    uCursorForce: {value:0},""")
+                    uWakeTexture: {value:wakeTexture},""")
+
+edit("src/components/GrassField.tsx",
+     "shader.uniforms.uWindStrength.value = wind.currentStrength;",
+     "shader.uniforms.uWindStrength.value = wind.currentStrength*solar.windMultiplier;")
 
 # Add pre-authored components after confirming the core patch applies.
 files = {
@@ -192,8 +205,11 @@ files = {
     "src/SerenityAtmosphere.tsx": "overlay/SerenityAtmosphere.tsx",
     "src/SerenitySound.tsx": "overlay/SerenitySound.tsx",
     "src/serenityCycle.ts": "overlay/serenityCycle.ts",
+    "src/PortfolioShell.tsx": "overlay/PortfolioShell.tsx",
+    "src/projectCatalog.ts": "overlay/projectCatalog.ts",
+    "src/WakeField.ts": "overlay/WakeField.ts",
 }
 here=Path(__file__).resolve().parent
 for dest,source in files.items():
     (repo/dest).write_text((here/source).read_text())
-print("Applied Zephyr grass, cursor, lighting and landscape overlay.")
+print("Applied Serenity portfolio, field controls and directional grass wake.")
