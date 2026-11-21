@@ -61,7 +61,7 @@ jobs:
         run: |
           npm install --no-save --no-package-lock --ignore-scripts playwright@1.55.1
           npx playwright install --with-deps chromium
-          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/portfolio-preview.log 2>&1 &
+          npm run preview -- --base /publishes/ --host 127.0.0.1 --port 4173 > /tmp/portfolio-preview.log 2>&1 &
           PREVIEW_PID=$!
           trap 'kill "$PREVIEW_PID" || true' EXIT
           for i in $(seq 1 40); do
