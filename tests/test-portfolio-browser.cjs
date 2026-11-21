@@ -30,7 +30,7 @@ async function check(browser,name,device){
   assert.equal(await page.locator('.serenity-heading').count(),0,'legacy header must be removed');
   await page.screenshot({path:path.join(folder,name+'-landing.png')});
   await entry.click();
-  await page.waitForURL('**/#/work');
+  await page.waitForURL(/#\/work$/);
   assert.equal(await page.locator('.work-tile').count(),12);
   const research=page.getByRole('button',{name:'RESEARCH',exact:true});
   await research.click();
@@ -39,12 +39,12 @@ async function check(browser,name,device){
   assert.equal(await page.locator('a[href="#"]').count(),0,'unpublished tiles must not be dead links');
   await page.screenshot({path:path.join(folder,name+'-catalogue.png')});
   await page.reload();
-  await page.waitForURL('**/#/work');
+  await page.waitForURL(/#\/work$/);
   assert.equal(await page.locator('.work-tile').count(),12,'hard refresh must restore work route');
   const field=page.getByRole('button',{name:/Enter field/});
   if(await field.isEnabled()){
     await field.click();
-    await page.waitForURL('**/#/field');
+    await page.waitForURL(/#\/field$/);
     const settings=page.getByRole('button',{name:/Field settings/});
     await settings.click();
     await page.getByLabel('Light').selectOption('Night');
@@ -52,7 +52,7 @@ async function check(browser,name,device){
     assert(await page.getByRole('button',{name:'Resume lighting'}).isVisible());
     await page.screenshot({path:path.join(folder,name+'-field.png')});
     await page.getByRole('button',{name:/Return to work/}).click();
-    await page.waitForURL('**/#/work');
+    await page.waitForURL(/#\/work$/);
     assert(await page.getByRole('button',{name:'ALL'}).isVisible());
   }else{
     console.warn(name+': WebGL2 unsupported by CI browser; field scene NOT visually verified');
