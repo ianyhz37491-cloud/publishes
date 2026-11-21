@@ -8,4 +8,9 @@ export const solar={
   paused:false,
   cursorMotion:0,
   cursorForce:0,
+  interactionEnabled:false,
+  phaseManual:null as number|null,
+  cycleSeconds:10,
+  windMultiplier:1,
+  soundVolume:0.78,
 };

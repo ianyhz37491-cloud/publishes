@@ -17,8 +17,6 @@ const sunsetLight=new THREE.Color('#ffc086');
 export function SerenityAtmosphere(){
   const cfg=useControls('Serenity sky',{
     animated:true,
-    cycleSeconds:{value:10,min:10,max:180,step:1},
-    startingTime:{value:0.08,min:0,max:1,step:0.01},
     clouds:true
   });
   const sky=useRef<ComponentRef<typeof Sky>>(null);
@@ -29,7 +27,7 @@ export function SerenityAtmosphere(){
   const cloudGroup=useRef<THREE.Group>(null);
   const starColors=useRef<Float32Array|null>(null);
   const previousStars=useRef(-1);
-  const skyElapsed=useRef(0);
+  const skyPhase=useRef(0.08);
   const reduced=useRef(false);
   const direction=useMemo(()=>new THREE.Vector3(),[]);
   const lightColor=useMemo(()=>new THREE.Color(),[]);
@@ -42,8 +40,13 @@ export function SerenityAtmosphere(){
   },[]);
   useFrame(({clock},delta)=>{
     const time=clock.getElapsedTime();
-    if(cfg.animated&&!reduced.current&&!solar.paused)skyElapsed.current+=Math.min(Math.max(delta,0),0.05);
-    const phase=(cfg.startingTime+skyElapsed.current/cfg.cycleSeconds)%1;
+    if(solar.phaseManual!==null){
+      skyPhase.current=((solar.phaseManual%1)+1)%1;
+      solar.phaseManual=null;
+    }else if(cfg.animated&&!reduced.current&&!solar.paused){
+      skyPhase.current=(skyPhase.current+Math.min(Math.max(delta,0),0.05)/solar.cycleSeconds)%1;
+    }
+    const phase=skyPhase.current;
     const m=momentAt(phase);
     solar.phase=m.phase;
     solar.mood=m.mood;

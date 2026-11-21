@@ -19,7 +19,6 @@ export function SerenitySound(){
   const tracks=useRef<Track[]>([]);
   const running=useRef(false);
   const interval=useRef<number|undefined>(undefined);
-  const volume=useRef(0.78);
 
   function stop(){
     running.current=false;
@@ -71,7 +70,7 @@ export function SerenitySound(){
         touch:0.22*contact
       };
       for(const track of tracks.current){
-        const target=Math.min(1,desired[track.id]*volume.current);
+        const target=Math.min(1,desired[track.id]*solar.soundVolume);
         track.current+= (target-track.current)*0.14;
         if(!track.element.paused)track.element.volume=Math.max(0,Math.min(1,track.current));
       }
