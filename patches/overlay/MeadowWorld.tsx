@@ -101,7 +101,7 @@ function DistantGrass(){
       varying vec2 vUv;varying vec3 vWorld;
       void main(){
         float grain=fract(sin(dot(floor(vWorld.xz*33.0),vec2(127.1,311.7)))*43758.5453);
-        vec3 grass=mix(vec3(.08,.21,.065),vec3(.31,.51,.16),pow(vUv.y,.9));
+        vec3 grass=mix(vec3(.09,.21,.08),vec3(.27,.45,.19),pow(vUv.y,.9));
         grass*=mix(.88,1.12,grain);
         grass*=clamp(uDaylight*.75+.28,0.0,1.0);
         grass=mix(grass,vec3(.09,.18,.27),smoothstep(.35,1.0,uNight));
