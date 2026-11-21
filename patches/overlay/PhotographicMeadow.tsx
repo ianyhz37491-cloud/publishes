@@ -48,8 +48,8 @@ export function PhotographicMeadow({active}:Props){
         const bob=isMoving?Math.sin(elapsed*.71)*.016:0;
         node.style.setProperty('--parallax-x',String(x));
         node.style.setProperty('--parallax-y',String(y));
-        node.style.setProperty('--orb-x',String(.49+x*.20+drift));
-        node.style.setProperty('--orb-y',String(.57+y*.135+bob));
+        node.style.setProperty('--orb-left',`${((.49+x*.20+drift)*100).toFixed(2)}%`);
+        node.style.setProperty('--orb-top',`${((.57+y*.135+bob)*100).toFixed(2)}%`);
       }
       raf.current=requestAnimationFrame(draw);
     };
