@@ -33,7 +33,7 @@ export function momentAt(phase:number):SerenityMoment {
     daylight=1;
     elevation=0.82+0.13*Math.sin(Math.PI*progress);
     azimuth=-0.6+1.2*e;
-    twilight=0.04;
+    twilight=0;
   } else if(stage===2){ // Afternoon -> golden hour -> blue hour.
     daylight=1-0.55*e;
     elevation=0.82-1.0*e;
