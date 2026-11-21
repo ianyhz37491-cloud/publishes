@@ -34,6 +34,7 @@ async function check(browser,name,device){
   assert.equal(await page.locator('.work-tile').count(),12);
   const research=page.getByRole('button',{name:'RESEARCH',exact:true});
   await research.click();
+  await page.waitForFunction(()=>document.querySelectorAll('.work-tile').length===3,null,{timeout:10000});
   assert.equal(await page.locator('.work-tile').count(),3,'category filter must really work');
   assert.equal(await research.getAttribute('aria-pressed'),'true');
   assert.equal(await page.locator('a[href="#"]').count(),0,'unpublished tiles must not be dead links');
