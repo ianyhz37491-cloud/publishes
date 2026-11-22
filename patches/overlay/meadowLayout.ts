@@ -7,19 +7,19 @@ export type MeadowQuality='desktop'|'touch'|'low';
 export type MeadowBandSpec={extent:number;spacing:number;segments:number};
 const SPECS:Record<MeadowQuality,Record<MeadowBand,MeadowBandSpec>>={
   desktop:{
-    near:{extent:10.6,spacing:0.025,segments:7},
-    middle:{extent:29.0,spacing:0.084,segments:7},
-    far:{extent:52.0,spacing:0.285,segments:4},
+    near:{extent:9.2,spacing:0.025,segments:7},
+    middle:{extent:29.0,spacing:0.138,segments:7},
+    far:{extent:52.0,spacing:0.44,segments:4},
   },
   touch:{
-    near:{extent:10.6,spacing:0.0455,segments:7},
-    middle:{extent:29.0,spacing:0.146,segments:5},
-    far:{extent:52.0,spacing:0.52,segments:3},
+    near:{extent:9.2,spacing:0.057,segments:7},
+    middle:{extent:29.0,spacing:0.24,segments:5},
+    far:{extent:52.0,spacing:0.80,segments:3},
   },
   low:{
-    near:{extent:10.6,spacing:10/112,segments:7},
-    middle:{extent:29.0,spacing:0.30,segments:5},
-    far:{extent:52.0,spacing:0.94,segments:3},
+    near:{extent:9.2,spacing:0.125,segments:7},
+    middle:{extent:29.0,spacing:0.67,segments:5},
+    far:{extent:52.0,spacing:1.72,segments:3},
   },
 };
 export function meadowSpec(quality:MeadowQuality,band:MeadowBand):MeadowBandSpec{
@@ -30,7 +30,7 @@ export function smoothstep(start:number,end:number,x:number){
   return t*t*(3-2*t);
 }
 export function meadowDensity(band:MeadowBand,r:number){
-  if(band==='near')return 1-smoothstep(5.0,10.4,r);
+  if(band==='near')return 1-smoothstep(4.7,9.1,r);
   if(band==='middle')return smoothstep(3.0,8.7,r)*(1-smoothstep(14,28.4,r));
   return smoothstep(15,25,r)*(1-smoothstep(32,51.5,r));
 }

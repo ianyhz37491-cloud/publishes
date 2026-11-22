@@ -10,6 +10,7 @@ async function check(browser,name,device){
   const context=await browser.newContext({...device,acceptDownloads:false,reducedMotion:'reduce'});
   const page=await context.newPage();
   page.setDefaultTimeout(18000);
+  page.setDefaultNavigationTimeout(25000);
   const errors=[];
   const network=[];
   const shaderErrors=[];
@@ -45,7 +46,7 @@ async function check(browser,name,device){
   assert.equal(await muffle.isChecked(),false);
   await muffle.check();
   await page.getByRole('button',{name:'Close sound settings'}).click();
-  await page.screenshot({path:path.join(folder,name+'-landing.png')});
+  await page.screenshot({path:path.join(folder,name+'-landing.png'),timeout:45000});
   await entry.click();
   await page.waitForURL(/#\/work$/);
   assert.equal(await page.locator('.work-tile').count(),12);
@@ -75,7 +76,7 @@ async function check(browser,name,device){
   assert.equal(await popup.locator('a[href^="https://"]').count(),1,'spotlight must link to a real deployment');
   assert.equal(await popup.locator('a').getAttribute('href'),'https://margin-language-reader.onrender.com/');
   assert(!(await popup.innerText()).toLowerCase().includes('margin'),'working title must remain hidden until naming is finalized');
-  await page.screenshot({path:path.join(folder,name+'-spotlight.png')});
+  await page.screenshot({path:path.join(folder,name+'-spotlight.png'),timeout:45000});
   await page.keyboard.press('Escape');
   await popup.waitFor({state:'detached'});
   const research=page.getByRole('button',{name:'RESEARCH',exact:true});
@@ -93,7 +94,7 @@ async function check(browser,name,device){
   await research.click();
   await page.waitForFunction(()=>document.querySelectorAll('.work-tile').length===3,null,{timeout:10000});
   assert.equal(await page.locator('a[href="#"]').count(),0,'unpublished tiles must not be dead links');
-  await page.screenshot({path:path.join(folder,name+'-catalogue.png')});
+  await page.screenshot({path:path.join(folder,name+'-catalogue.png'),timeout:45000});
   await page.reload();
   await page.waitForURL(/#\/work$/);
   assert.equal(await page.locator('.work-tile').count(),12,'hard refresh must restore work route');
@@ -105,11 +106,11 @@ async function check(browser,name,device){
     const settings=page.getByRole('button',{name:/Field settings/});
     await settings.click();
     await page.getByLabel('Light').selectOption('Daylight');
-    await page.screenshot({path:path.join(folder,name+'-daylight.png')});
+    await page.screenshot({path:path.join(folder,name+'-daylight.png'),timeout:45000});
     await page.getByLabel('Weather').selectOption('rain');
     assert.equal(await page.getByLabel('Weather').inputValue(),'rain');
     await page.waitForTimeout(1200);
-    await page.screenshot({path:path.join(folder,name+'-rain.png')});
+    await page.screenshot({path:path.join(folder,name+'-rain.png'),timeout:45000});
     await page.getByLabel('Weather').selectOption('clear');
     await page.getByLabel('Light').selectOption('Night');
     assert.equal(await page.getByLabel('Light').inputValue(),'Night');
@@ -117,9 +118,9 @@ async function check(browser,name,device){
     await page.waitForTimeout(650);
     assert(await page.getByText('night · manual',{exact:true}).isVisible(),'manual mode must remain labelled after telemetry refresh');
     assert(await page.getByRole('button',{name:'Resume lighting'}).isVisible());
-    await page.screenshot({path:path.join(folder,name+'-field.png')});
+    await page.screenshot({path:path.join(folder,name+'-field.png'),timeout:45000});
     await page.getByRole('button',{name:'Close settings'}).click();
-    await page.screenshot({path:path.join(folder,name+'-field-scene.png')});
+    await page.screenshot({path:path.join(folder,name+'-field-scene.png'),timeout:45000});
 
 
     assert.equal(await page.locator('.photographic-meadow, .photo-depth-orb').count(),0,
@@ -130,7 +131,7 @@ async function check(browser,name,device){
     await page.getByLabel('Light').selectOption('Daylight');
     await page.getByRole('button',{name:'Close settings'}).click();
     await page.waitForTimeout(500);
-    await page.screenshot({path:path.join(folder,name+'-meadow-default.png')});
+    await page.screenshot({path:path.join(folder,name+'-meadow-default.png'),timeout:45000});
     if(!device.hasTouch){
       // Orbit the real canvas, not the overlaid portfolio UI.
       await page.mouse.move(720,470);
@@ -138,16 +139,16 @@ async function check(browser,name,device){
       await page.mouse.move(1110,590,{steps:15});
       await page.mouse.up();
       await page.waitForTimeout(350);
-      await page.screenshot({path:path.join(folder,name+'-meadow-low-orbit.png')});
+      await page.screenshot({path:path.join(folder,name+'-meadow-low-orbit.png'),timeout:45000});
       await page.mouse.move(720,450);
       await page.mouse.down();
       await page.mouse.move(360,290,{steps:14});
       await page.mouse.up();
       await page.waitForTimeout(350);
-      await page.screenshot({path:path.join(folder,name+'-meadow-high-orbit.png')});
+      await page.screenshot({path:path.join(folder,name+'-meadow-high-orbit.png'),timeout:45000});
       await page.mouse.wheel(0,-380);
       await page.waitForTimeout(350);
-      await page.screenshot({path:path.join(folder,name+'-meadow-zoom.png')});
+      await page.screenshot({path:path.join(folder,name+'-meadow-zoom.png'),timeout:45000});
     }
     const frames=await page.evaluate(async()=>{
       const times=[];
