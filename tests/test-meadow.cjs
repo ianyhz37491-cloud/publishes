@@ -15,7 +15,7 @@ assert.equal(meadowDensity('near',10),0,'near sampling tapers without square bou
 assert.equal(meadowDensity('middle',0),0,'mid sampling does not duplicate close-up');
 assert.equal(meadowDensity('far',0),0,'far samples do not clutter foreground');
 for(const r of [0,3.5,5,7,10,15,20,26,36,50]){
-  for(const band of ['near','middle','far']){
+  for(const band of ['near','bridge','middle','far']){
     const weight=meadowDensity(band,r);
     assert(weight>=0&&weight<=1,'density is a bounded probability');
   }
@@ -26,6 +26,7 @@ for(const r of [5,7,9,12,18,23,30,40]){
 }
 for(const quality of ['desktop','touch','low']){
   assert.equal(meadowSpec(quality,'near').segments,7);
+  assert(meadowSpec(quality,'bridge').spacing < meadowSpec(quality,'middle').spacing);
   for(const band of ['near','middle','far']){
     const spec=meadowSpec(quality,band);
     assert(spec.spacing>0&&spec.extent>=9.0);
@@ -50,17 +51,11 @@ for(const quality of ['desktop','touch','low']){
     counts[quality][band]=found;
   }
   const total=Object.values(counts[quality]).reduce((a,b)=>a+b,0);
-  const cap={desktop:360000,touch:90000,low:18000}[quality];
+  const cap={desktop:400000,touch:105000,low:23000}[quality];
   assert(total<cap,'budget caps prevent runaway instancing: '+quality+' '+total);
 }
 for(const band of ['near','middle','far']){
   assert(counts.desktop[band]>counts.touch[band]);
   assert(counts.touch[band]>counts.low[band]);
 }
-const canopy=fs.readFileSync(path.resolve(process.cwd(),'src/MeadowCanopy.tsx'),'utf8');
-assert(canopy.includes('getHeight(point.x,-point.z)'),'canopy roots must follow identical terrain');
-assert(canopy.includes('useWindStore.getState()'),'canopy must use same global wind store');
-assert(canopy.includes('solar.windMultiplier'),'canopy must follow the field wind control');
-assert(canopy.includes('createLinearGradient'),'procedural clumps must be actual shaded grass cutouts');
-assert(!canopy.includes('images.unsplash')&&!canopy.includes('PhotographicMeadow'),'do not reintroduce photo study');
 console.log('PASS: unified meadow world sampling, continuous overlap, deterministic seeds, geometry and quality budgets',counts);

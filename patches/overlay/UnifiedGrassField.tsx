@@ -11,7 +11,7 @@ import {solar} from '@/solar';
 import {WakeField} from '@/WakeField';
 import {meadowSpec,sampleMeadowCell,type MeadowBand,type MeadowQuality} from '@/meadowLayout';
 
-const BANDS:MeadowBand[]=['near','middle','far'];
+const BANDS:MeadowBand[]=['near','bridge','middle','far'];
 function fract(v:number){return v-Math.floor(v);}
 function hash(x:number,z:number,seed:number){
   return fract(Math.sin(x*127.1+z*311.7+seed*67.13)*43758.5453);

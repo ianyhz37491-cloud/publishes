@@ -112,7 +112,6 @@ files = {
     "src/ProjectSpotlight.tsx": "overlay/ProjectSpotlight.tsx",
     "src/MeadowWorld.tsx": "overlay/MeadowWorld.tsx",
     "src/MeadowRain.tsx": "overlay/MeadowRain.tsx",
-    "src/MeadowCanopy.tsx": "overlay/MeadowCanopy.tsx",
     "src/meadowLayout.ts": "overlay/meadowLayout.ts",
     "src/components/GrassField.tsx": "overlay/UnifiedGrassField.tsx",
 }
