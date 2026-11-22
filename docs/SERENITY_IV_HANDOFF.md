@@ -67,3 +67,9 @@ The source is compiled from a pinned upstream Zephyr revision; make changes in *
 6. Create PR, merge only after visual gate, verify Pages deployed commit, update this document/release record with implemented facts, rejected approaches and screenshots.
 
 **User instruction:** Treat this as implementation work. Execute autonomously, don't ask to repeat known requirements, don't stop at another plan or mockup, don't assume done because the CI passes, don't call it photorealistic. The goal is a *single, continuous, convincing meadow* using the grass already known to look good.
+
+## Implementation checkpoint — 22 Nov 2026
+
+The initial unified-band implementation built and passed landscape sampling/portfolio model tests, and software Chromium smoke journeys on 1440×900 desktop and 390×844 mobile, but **failed the visual acceptance gate**: photographed screenshots `desktop-meadow-default.png`, `desktop-meadow-low-orbit.png` and `mobile-meadow-default.png` showed exposed flat terrain and isolated dark blades after the high-density near field. No merge or deployment at this checkpoint. The unit LOD model alone cannot establish field continuity. Reported browser rAF intervals on headless SwiftShader (`?quality=low`) were ~483ms desktop median and ~2150ms mobile median, not actual Safari FPS.
+
+Follow-up implementation adds GPU-instanced crossed clumps authored programmatically from tapered Zephyr-style grass leaf shapes. These supply foliage mass at mid/far range without increasing full-shader individual blade counts, while retaining full Zephyr geometry near/mid. The next screenshot review must assess actual perceptual benefit and whether this new LOD is still too artificial; no acceptance implied by this note.

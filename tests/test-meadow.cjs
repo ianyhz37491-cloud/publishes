@@ -57,4 +57,10 @@ for(const band of ['near','middle','far']){
   assert(counts.desktop[band]>counts.touch[band]);
   assert(counts.touch[band]>counts.low[band]);
 }
+const canopy=fs.readFileSync(path.resolve(process.cwd(),'src/MeadowCanopy.tsx'),'utf8');
+assert(canopy.includes('getHeight(point.x,-point.z)'),'canopy roots must follow identical terrain');
+assert(canopy.includes('useWindStore.getState()'),'canopy must use same global wind store');
+assert(canopy.includes('solar.windMultiplier'),'canopy must follow the field wind control');
+assert(canopy.includes('createLinearGradient'),'procedural clumps must be actual shaded grass cutouts');
+assert(!canopy.includes('images.unsplash')&&!canopy.includes('PhotographicMeadow'),'do not reintroduce photo study');
 console.log('PASS: unified meadow world sampling, continuous overlap, deterministic seeds, geometry and quality budgets',counts);
