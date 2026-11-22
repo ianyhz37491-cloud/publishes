@@ -55,22 +55,6 @@ jobs:
           PY
           cp PHOTO_SOURCES.md zephyr/public/media/PHOTO_SOURCES.md
 
-      - name: Produce photographic depth layers from licensed meadow photograph
-        run: |
-          python3 -m pip install --quiet --disable-pip-version-check \
-            "numpy==2.2.6" "opencv-python-headless==4.11.0.86" "Pillow==11.2.1"
-          mkdir -p /tmp/serenity-photo-source zephyr/public/media/meadow-depth
-          curl --fail --location --retry 3 --max-time 75 \
-            'https://images.unsplash.com/photo-1644147184714-5a79cbf24333?fm=jpg&fit=crop&w=2400&q=84' \
-            -o /tmp/serenity-photo-source/meadow.jpg
-          python3 patches/build-photo-depth.py \
-            /tmp/serenity-photo-source/meadow.jpg zephyr/public/media/meadow-depth
-          test -s zephyr/public/media/meadow-depth/background.webp
-          test -s zephyr/public/media/meadow-depth/stems.webp
-          test -s zephyr/public/media/meadow-depth/near.webp
-          test -s zephyr/public/media/meadow-depth/matte.png
-          cp PHOTO_SOURCES.md zephyr/public/media/meadow-depth/SOURCES.md
-
       - name: Install dependencies and compile production site
         working-directory: zephyr
         run: |
@@ -85,6 +69,10 @@ jobs:
       - name: Test catalogue, route and grass-wake behaviour
         working-directory: zephyr
         run: node ../tests/test-portfolio.cjs
+
+      - name: Test unified grass sampling and LOD continuity
+        working-directory: zephyr
+        run: node ../tests/test-meadow.cjs
 
       - name: Install verified CC0 countryside field recordings
         run: |
@@ -129,37 +117,6 @@ jobs:
             sleep 1
           done
           node ../tests/test-portfolio-browser.cjs
-
-      - name: Emit reduced photographic previews for visual QA
-        if: always()
-        run: |
-          python3 - <<'PY'
-          import base64, io
-          from pathlib import Path
-          from PIL import Image
-          for name in ('desktop-photographic-depth.png','mobile-photographic-depth.png'):
-              path=Path('browser-artifacts')/name
-              if not path.exists():
-                  print('PHOTO_REVIEW_MISSING='+name,flush=True)
-                  continue
-              with Image.open(path) as source:
-                  image=source.convert('RGB')
-              image.thumbnail((880,630),Image.Resampling.LANCZOS)
-              buf=io.BytesIO()
-              image.save(buf,format='JPEG',quality=68,optimize=True)
-              token=base64.b64encode(buf.getvalue()).decode('ascii')
-              print('PHOTO_REVIEW_'+name.replace('.png','').replace('-','_').upper()+'='+token,flush=True)
-          PY
-
-      - name: Upload photographic depth matte and provenance for review
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: photographic-depth-asset-evidence
-          path: |
-            zephyr/public/media/meadow-depth/matte.png
-            zephyr/public/media/meadow-depth/provenance.json
-          if-no-files-found: ignore
 
       - name: Upload browser QA screenshots
         if: always()

@@ -12,6 +12,8 @@ async function check(browser,name,device){
   page.setDefaultTimeout(18000);
   const errors=[];
   const network=[];
+  const shaderErrors=[];
+  page.on('console',message=>{if(/THREE.WebGLProgram: Shader Error|VALIDATE_STATUS false|WebGL: INVALID_OPERATION/.test(message.text()))shaderErrors.push(message.text());});
   page.on('pageerror',e=>errors.push(e.stack||e.message));
   page.on('response',r=>{if(r.status()>=400)network.push(r.status()+': '+r.url());});
   const response=await page.goto(base,{waitUntil:'domcontentloaded'});
@@ -119,47 +121,54 @@ async function check(browser,name,device){
     await page.getByRole('button',{name:'Close settings'}).click();
     await page.screenshot({path:path.join(folder,name+'-field-scene.png')});
 
-    // Real photographic asset layers must load and preserve a genuinely masked,
-    // interactive object *behind* photographed grass, not atop a flat image.
-    await page.getByRole('button',{name:'Photographic study'}).click();
-    const photo=page.locator('.photographic-meadow.is-active');
-    await photo.waitFor();
-    const photoAssets=['.photo-depth-background','.photo-depth-stems','.photo-depth-near'];
-    for(const selector of photoAssets){
-      const element=photo.locator(selector);
-      await element.waitFor({state:'visible'});
-      await page.waitForFunction(
-        selector=>{
-          const image=document.querySelector(selector);
-          return image instanceof HTMLImageElement && image.complete && image.naturalWidth>=1000;
-        },selector,{timeout:15000}
-      );
-    }
-    assert(await photo.locator('.photo-depth-orb').isVisible(),'orb must render behind alpha-stem plane');
-    const hideObject=photo.getByRole('button',{name:'Hide object'});
-    await hideObject.click();
-    assert.equal(await photo.locator('.photo-depth-orb').count(),0,'hide object control must actually remove it');
-    await photo.getByRole('button',{name:'Show object'}).click();
-    assert.equal(await photo.locator('.photo-depth-orb').count(),1,'object must return');
-    await page.screenshot({path:path.join(folder,name+'-photographic-depth.png')});
+
+    assert.equal(await page.locator('.photographic-meadow, .photo-depth-orb').count(),0,
+      'removed photographic meadow and orb must not be in DOM');
+    assert.equal(await page.getByRole('button',{name:'Photographic study'}).count(),0,
+      'removed scene mode must not remain as a control');
+    await page.getByRole('button',{name:/Field settings/}).click();
+    await page.getByLabel('Light').selectOption('Daylight');
+    await page.getByRole('button',{name:'Close settings'}).click();
+    await page.waitForTimeout(500);
+    await page.screenshot({path:path.join(folder,name+'-meadow-default.png')});
     if(!device.hasTouch){
-      await page.emulateMedia({reducedMotion:'no-preference'});
-      await page.waitForTimeout(180);
-      await page.mouse.move(150,220);
-      await page.waitForTimeout(500);
-      const px=await photo.locator('.photo-depth-stage').evaluate(
-        e=>getComputedStyle(e).getPropertyValue('--photo-stem-x').trim()
-      );
-      assert(px.endsWith('px')&&Math.abs(parseFloat(px))>.1,'photographic grass plane must track pointer parallax');
+      // Orbit the real canvas, not the overlaid portfolio UI.
+      await page.mouse.move(720,470);
+      await page.mouse.down();
+      await page.mouse.move(1110,590,{steps:15});
+      await page.mouse.up();
+      await page.waitForTimeout(350);
+      await page.screenshot({path:path.join(folder,name+'-meadow-low-orbit.png')});
+      await page.mouse.move(720,450);
+      await page.mouse.down();
+      await page.mouse.move(360,290,{steps:14});
+      await page.mouse.up();
+      await page.waitForTimeout(350);
+      await page.screenshot({path:path.join(folder,name+'-meadow-high-orbit.png')});
+      await page.mouse.wheel(0,-380);
+      await page.waitForTimeout(350);
+      await page.screenshot({path:path.join(folder,name+'-meadow-zoom.png')});
     }
-    await page.screenshot({path:path.join(folder,name+'-photographic-motion.png')});
-    if(!device.hasTouch)await page.emulateMedia({reducedMotion:'reduce'});
-    assert(await page.getByRole('button',{name:'Hear the landscape'}).isVisible(),
-      'existing audio stays accessible in photographic mode');
-    await page.getByRole('button',{name:'3D meadow'}).click();
-    await photo.waitFor({state:'hidden'});
-    assert(await page.getByRole('button',{name:'Field settings'}).isEnabled(),
-      '3D lighting controls must work after returning from photographic study');
+    const frames=await page.evaluate(async()=>{
+      const times=[];
+      await new Promise(resolve=>{
+        let start=0,last=0;
+        const tick=(now)=>{
+          if(!start)start=now;
+          if(last)times.push(now-last);
+          last=now;
+          if(now-start<1050)requestAnimationFrame(tick);
+          else resolve(null);
+        };
+        requestAnimationFrame(tick);
+      });
+      times.sort((a,b)=>a-b);
+      return {samples:times.length,medianMs:times[Math.floor(times.length/2)]||0,
+        p95Ms:times[Math.floor(times.length*.95)]||0};
+    });
+    console.log(name+' software Chromium ?quality=low rAF frame intervals '+JSON.stringify(frames));
+    assert(frames.samples>0,'the live field must produce animation frames');
+
     await page.getByRole('button',{name:/Return to work/}).click();
     await page.waitForURL(/#\/work$/);
     await page.getByRole('button',{name:'ALL',exact:true}).waitFor({state:'visible',timeout:10000});
@@ -169,6 +178,8 @@ async function check(browser,name,device){
   await page.goBack();
   assert(['#/field',''].includes(new URL(page.url()).hash),'back must restore a previous hash route');
   assert.equal(errors.length,0,'uncaught browser errors: '+errors.join(' | '));
+  assert.equal(shaderErrors.length,0,'WebGL shader errors: '+shaderErrors.join(' | '));
+  assert(!network.some(line=>line.includes('/meadow-depth/')),'obsolete photo requests must not happen');
   console.log('PASS browser interactions '+name+' (interactive WebGL field tested: '+fieldWasAvailable+')');
   await context.close();
 }

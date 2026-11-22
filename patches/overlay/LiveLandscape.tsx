@@ -3,12 +3,11 @@ import {OrbitControls} from '@react-three/drei';
 import {Leva} from 'leva';
 import {Component,useRef,useState,type ComponentRef,type ReactNode} from 'react';
 import {MeadowWorld} from '@/MeadowWorld';
-import {MeadowEcology} from '@/MeadowEcology';
+import {MeadowRain} from '@/MeadowRain';
 import {GrassField} from '@/components/GrassField';
 import {WindSystem} from '@/components/WindSystem';
 import {SerenityAtmosphere} from '@/SerenityAtmosphere';
 import {PortfolioShell} from '@/PortfolioShell';
-import {PhotographicMeadow} from '@/PhotographicMeadow';
 import {routeFromHash,type PortfolioRoute} from '@/portfolioRoutes';
 import '@/live.css';
 
@@ -30,7 +29,6 @@ class SceneBoundary extends Component<{children:ReactNode;onError:()=>void},{fai
 export default function LiveLandscape(){
   const [view,setView]=useState<PortfolioRoute>(()=>routeFromHash(window.location.hash));
   const [sceneAvailable,setSceneAvailable]=useState(hasWebGL);
-  const [photoMode,setPhotoMode]=useState(false);
   const controls=useRef<ComponentRef<typeof OrbitControls>>(null);
   const resetCamera=()=>{
     if(!controls.current)return;
@@ -45,24 +43,18 @@ export default function LiveLandscape(){
       {sceneAvailable&&<Canvas
         camera={{position:[0.2,1.35,3.6],fov:62,near:0.06,far:2400}}
         dpr={[1,1.5]} gl={{antialias:true,powerPreference:'high-performance'}}
-        frameloop={photoMode?'demand':'always'}
         className="landscape-canvas"
-        style={{width:'100%',height:'100%',pointerEvents:view==='field'&&!photoMode?'auto':'none',visibility:photoMode&&view==='field'?'hidden':'visible'}}
+        style={{width:'100%',height:'100%',pointerEvents:view==='field'?'auto':'none'}}
         fallback={<div className="landscape-fallback" role="alert">3D view unavailable. Browse the project catalogue instead.</div>}>
         <color attach="background" args={['#192d43']}/>
         <SerenityAtmosphere/>
-        <MeadowWorld/><GrassField/><WindSystem/><MeadowEcology/>
+        <MeadowWorld/><GrassField/><WindSystem/><MeadowRain/>
         <OrbitControls ref={controls} target={[0,0.4,-1.5]} enablePan={false}
           minDistance={1.4} maxDistance={6.5}
           minPolarAngle={1.13} maxPolarAngle={Math.PI/2-0.045} enableDamping dampingFactor={0.045}/>
       </Canvas>}
     </SceneBoundary>
-    <PhotographicMeadow active={photoMode&&view==='field'}/>
     <PortfolioShell sceneAvailable={sceneAvailable} onResetCamera={resetCamera}
-      photoMode={photoMode} onPhotoModeChange={setPhotoMode}
-      onRouteChange={next=>{
-        setView(next);
-        if(next!=='field')setPhotoMode(false);
-      }}/>
+      onRouteChange={setView}/>
   </main>;
 }
