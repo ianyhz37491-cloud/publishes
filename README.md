@@ -1,4 +1,4 @@
-# Interactive Portfolio / Serenity II
+# Interactive Portfolio / Serenity IV
 
 A minimalist project index surrounded by a living, explorable meadow. The environmental scene is optional; visitors can reach the work catalogue immediately.
 
@@ -20,40 +20,30 @@ The catalogue uses an original studio-style layout; it does not copy the screens
 
 Desktop pointers reveal the preview on hover, touch users tap the card, keyboard focus opens it, and Escape or close dismisses it. Dismissing while the pointer is still over a card does not repeatedly reopen the preview and block the filters. The original category underline and FLIP animation remain intact.
 
-## Photographic meadow — opt-in study
-
-In Field mode, choose **Photographic study** to enter a separate, fixed-vantage 2.5D landscape based on a licensed meadow photograph (see [PHOTO_SOURCES.md](PHOTO_SOURCES.md)). This does **not** replace the original WebGL free roam or become the default landing automatically.
-
-A build-time Python/OpenCV pipeline derives **real photographed grass-edge alpha mattes**, exports independent distant-stem and near-field layers, and conservatively inpaints fine, previously occluded background areas. Pointer movement produces limited relative parallax. A subtle, optional refractive-looking object moves between the image layers so real photographed grasses visibly pass in front of it; **Hide object** tests the landscape alone. The existing opt-in ambient player can respond to photo-mode motion. Reduced-motion preference disables parallax and animation. Returning to **3D meadow** restores the original scene.
-
-This experiment is **not** a metrically correct depth map, 360° landscape, physically simulated glass, or neural 3D reconstruction. A single photo cannot provide the actual hidden scene geometry. The hard visual-release gate is inspected desktop/mobile screenshots and, ideally, physical Safari review; a successful build and alpha-mask statistics are insufficient. Read [the photographic-depth research and acceptance record](docs/PHOTOGRAPHIC_DEPTH_PIPELINE.md).
-
-
-
 ## Environmental rendering
 
 This project preserves the source architecture and original GPU-instanced grass/wind field of [Zephyr by rether](https://github.com/RetherSzu/zephyr) (MIT; pinned revision `bd74c81efa0c49a8f8acc6cab41550dd2f0d95b0`). The source overlay is in [patches/apply.py](patches/apply.py).
 
-**Meadow continuity:** the former visible 10 × 10 floating patch is now a height-consistent, 180 × 180 terrain with a lower-density outer grass field, distance fog, and restrained camera orbit limits. Far scenery receives fewer blades than the foreground; the renderer does not attempt 160k blades for every distant tile.
+**Meadow continuity:** One Zephyr-derived blade family, one lighting material, world-space wind and terrain height across four overlapping radial bands. The centre retains the original seven-segment silhouette and desktop sampling spacing. Density is tapered stochastically from near through mid to far distances without a rectangular tile boundary. A high-density bridge of actual Zephyr blade geometry retains spatial foliage mass beyond the original square, while the middle and far bands thin progressively with distance. The distant ground receives a tiled procedural blade-texture canopy where literal blades drop below pixel resolution. No sprite shrublets, photographic layers or independent grass-wind systems are used. Sampling lives in `patches/overlay/meadowLayout.ts`.
 
 **Atmosphere:** explicit blue daylight sky, sunrise and sunset, moonlit night, star visibility, several independent cloud forms and gradual clear/overcast/drizzle/rain states. The weather may evolve slowly on its own or be selected from Field settings.
 
-**Vegetation and wildlife:** instanced daisies sway independently; butterflies move during suitable daylight; firefly sprites appear mainly at night; wind-slanted rain particles respond to rainfall strength. The wildlife and rain are quality-budgeted by device class.
+**Weather:** Wind-slanted rain is retained as an isolated particle system. Daisies, butterflies and fireflies have been removed.
 
 **Grass interaction:** a directionally scattered world-aligned wake with irregular edges and different recovery times replaces the original circular cursor sphere. All continuous blade bending remains on the GPU, layered with Zephyr's natural wind. Interaction near the ground raises an existing licensed rustle recording only after the visitor explicitly enables sound.
 
-Presets:
-- Desktop: 400 × 400 foreground grass blades (160,000), plus sparse distant foliage.
-- Coarse-pointer devices: 220 × 220 foreground blades (48,400).
-- Explicit `?quality=low`: 112 × 112 broader low-power foreground blades (12,544), plus reduced wildlife and distant tufts.
-- WebGL2 unavailable: static gradient poster with a fully operable catalogue, with free roam disabled honestly.
+Quality presets:
+- Desktop: 0.025 world-unit centre lattice, with overlapping stochastic mid/far grass bands.
+- Touch devices: reduced sampling across all bands, still sharing the desktop blade materials.
+- `?quality=low`: explicitly reduced centre/middle/far sampling for software Chromium and limited GPUs.
+- WebGL2 unavailable: static poster and functional catalogue; field navigation is disabled.
 
-These are budgets, **not measured FPS guarantees**.
+These settings are sampling rules, not measured performance promises. The wake is still limited to the central 10 × 10 area and its visual naturalness is not yet signed off.
 
 ## Verification
 
 [Original Serenity cycle tests](tests/test-serenity.cjs), [catalogue/wake model tests](tests/test-portfolio.cjs), strict TypeScript/Vite build and [desktop/mobile Chromium browser journeys](tests/test-portfolio-browser.cjs) run in GitHub Actions. Browser checks cover landing, filters, deep links, sound activation/mute, mood selection, manual rain, field return and screenshots. Pinned CC0 sound recordings are SHA-verified before browser tests and deployment.
 
-Software-rendered Chromium screenshots use `?quality=low`. They verify real WebGL and UI interactions, **not full-density Mac Safari performance, artistic realism or iPhone GPU behaviour**. Physical listening, Safari compatibility and measured FPS remain hardware release gates.
+Software-rendered Chromium screenshots use `?quality=low`. They test UI and rendering paths, and multiple field orbits, but **cannot establish perceptual continuity or native Mac Safari/iPhone GPU performance** until screenshots are inspected and target devices are profiled. Physical listening, Safari compatibility and measured FPS remain hardware release gates.
 
 No proprietary portfolio images or private project records are included. [SERENITY_II_RELEASE.md](docs/SERENITY_II_RELEASE.md) records implemented stages and outstanding improvements.

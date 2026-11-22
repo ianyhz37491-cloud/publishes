@@ -77,8 +77,8 @@ edit("src/shaders/grass.frag",
     finalColor=mix(sunlit,moonlit,moon);
     finalColor=mix(finalColor,vec3(0.12,0.24,0.18),uRain*.14);
     float distanceFromCentre=length(vWorldPos.xz);
-    float fog=smoothstep(4.3,12.0,distanceFromCentre);
-    finalColor=mix(finalColor,uFogColor,fog*.5);
+    float fog=smoothstep(18.0,70.0,distanceFromCentre);
+    finalColor=mix(finalColor,uFogColor,fog*.93);
     gl_FragColor = vec4(finalColor,1.0);""")
 
 for a,b in [
@@ -92,134 +92,9 @@ for a,b in [
 ]:
     edit("src/components/WindSystem.tsx",a,b)
 
-# Give low-density fallback blades slightly broader leaves; retain native full quality.
-edit("src/components/GrassField.tsx",
-     """    const geometry = useMemo(() => {
-        return grassGeometry(7, 0.02, 0.5, 2.0);
-    }, []);""",
-     """    const geometry = useMemo(() => {
-        const reduced=new URLSearchParams(window.location.search).get('quality')==='low';
-        return grassGeometry(7,reduced?0.044:0.02,0.5,2.0);
-    }, []);""")
-
-# Preserve the full 160k-blade desktop look, but prevent mobile from instancing
-# the same dense field at expensive mobile GPU resolutions.
-edit("src/components/GrassField.tsx",
-    "const BLADES_PER_ROW = 400;",
-    "const BLADES_PER_ROW = new URLSearchParams(window.location.search).get('quality')==='low' ? 112 : window.matchMedia('(pointer:coarse)').matches ? 220 : 400;")
-
-edit("src/components/GrassField.tsx",
-    "import { useFrame } from '@react-three/fiber';",
-    "import { useFrame, useThree } from '@react-three/fiber';")
-edit("src/components/GrassField.tsx",
-    "import { useWindStore } from '@/stores/windStore';",
-    "import { useWindStore } from '@/stores/windStore';\nimport { solar } from '@/solar';\nimport { WakeField } from '@/WakeField';")
-edit("src/components/GrassField.tsx",
-    "    const fieldRef = useRef<THREE.InstancedMesh>(null);",
-    """    const fieldRef = useRef<THREE.InstancedMesh>(null);
-    const {camera,gl} = useThree();
-    const cursorNdc=useRef(new THREE.Vector2());
-    const inside=useRef(false);
-    const ray=useRef(new THREE.Raycaster());
-    const hit=useRef(new THREE.Vector3());
-    const pointer=useRef(new THREE.Vector2(1000,1000));
-    const previousPointer=useRef(new THREE.Vector2(1000,1000));
-    const pointerWasActive=useRef(false);
-    const wake=useMemo(()=>new WakeField(128),[]);
-    const wakeTexture=useMemo(()=>{
-        const texture=new THREE.DataTexture(wake.pixels,wake.size,wake.size,THREE.RGBAFormat);
-        texture.magFilter=THREE.LinearFilter;
-        texture.minFilter=THREE.LinearFilter;
-        texture.generateMipmaps=false;
-        texture.needsUpdate=true;
-        return texture;
-    },[wake]);""")
-edit("src/components/GrassField.tsx",
-    """    useEffect(() => {
-        return () => geometry.dispose();
-    }, [geometry]);""",
-    """    useEffect(() => {
-        const canvas=gl.domElement;
-        const move=(e:PointerEvent)=>{
-            if(!solar.interactionEnabled)return;
-            const b=canvas.getBoundingClientRect();
-            if(!b.width||!b.height)return;
-            cursorNdc.current.set(2*(e.clientX-b.left)/b.width-1,1-2*(e.clientY-b.top)/b.height);
-            inside.current=true;
-        };
-        const leave=()=>{inside.current=false;pointerWasActive.current=false;};
-        canvas.addEventListener('pointermove',move,{passive:true});
-        canvas.addEventListener('pointerleave',leave);
-        canvas.addEventListener('pointerup',leave);
-        canvas.addEventListener('pointercancel',leave);
-        window.addEventListener('blur',leave);
-        return ()=>{
-            canvas.removeEventListener('pointermove',move);
-            canvas.removeEventListener('pointerleave',leave);
-            canvas.removeEventListener('pointerup',leave);
-            canvas.removeEventListener('pointercancel',leave);
-            window.removeEventListener('blur',leave);
-        };
-    },[gl]);
-    useEffect(() => {
-        return ()=>{geometry.dispose();wakeTexture.dispose();};
-    }, [geometry,wakeTexture]);""")
-edit("src/components/GrassField.tsx",
-    "            shader.uniforms.uTurbAmount.value = wind.turbAmount;",
-    """            shader.uniforms.uTurbAmount.value = wind.turbAmount;
-            shader.uniforms.uDaylight.value=solar.daylight;
-            shader.uniforms.uRain.value=solar.rainMix;
-            (shader.uniforms.uSkyTint.value as THREE.Color).copy(solar.tint);
-            (shader.uniforms.uFogColor.value as THREE.Color).copy(solar.fogColor);
-
-            let active=solar.interactionEnabled&&inside.current;
-            if(active){
-                ray.current.setFromCamera(cursorNdc.current,camera);
-                const r=ray.current.ray;
-                if(Math.abs(r.direction.y)>0.0001){
-                    let distance=-r.origin.y/r.direction.y;
-                    for(let i=0;distance>0&&i<3;i++){
-                        r.at(distance,hit.current);
-                        distance=(getHeight(hit.current.x,-hit.current.z)-r.origin.y)/r.direction.y;
-                    }
-                    if(distance>0){
-                        r.at(distance,hit.current);
-                        if(Math.abs(hit.current.x)<5&&Math.abs(hit.current.z)<5)
-                            pointer.current.set(hit.current.x,hit.current.z);
-                        else active=false;
-                    }else active=false;
-                }else active=false;
-            }
-            const dt=Math.min(_delta,0.05);
-            let motion=0;
-            if(active&&pointerWasActive.current){
-                const distance=pointer.current.distanceTo(previousPointer.current);
-                if(distance>0.014&&distance<6){
-                    const force=Math.min(1,Math.max(0.4,distance/Math.max(dt,0.016)*0.20));
-                    wake.paint(
-                        {x:previousPointer.current.x,z:previousPointer.current.y},
-                        {x:pointer.current.x,z:pointer.current.y},force
-                    );
-                    motion=Math.min(1,distance*4);
-                }
-            }
-            if(wake.tick(dt))wakeTexture.needsUpdate=true;
-            solar.cursorMotion+=(motion-solar.cursorMotion)*Math.min(1,dt*(motion>solar.cursorMotion?8:4));
-            solar.cursorForce=motion;
-            pointerWasActive.current=active;
-            previousPointer.current.copy(pointer.current);""")
-edit("src/components/GrassField.tsx",
-    "                    uSunDirection: { value: new THREE.Vector3() },",
-    """                    uSunDirection: { value: new THREE.Vector3() },
-                    uDaylight: {value:1},
-                    uSkyTint: {value:new THREE.Color('#ffffff')},
-                    uFogColor: {value:new THREE.Color('#77a4ac')},
-                    uRain: {value:0},
-                    uWakeTexture: {value:wakeTexture},""")
-
-edit("src/components/GrassField.tsx",
-     "shader.uniforms.uWindStrength.value = wind.currentStrength;",
-     "shader.uniforms.uWindStrength.value = wind.currentStrength*solar.windMultiplier*(1+solar.rainMix*.35);")
+# The unified grass renderer is supplied as a version-controlled overlay below.
+# Its three bands share the pinned Zephyr shader, weather and wind uniforms.
+# No second distant-grass shader or temporary checkout edits are permitted.
 
 # Add pre-authored components after confirming the core patch applies.
 files = {
@@ -235,11 +110,12 @@ files = {
     "src/portfolioRoutes.ts": "overlay/portfolioRoutes.ts",
     "src/AnimatedCatalogue.tsx": "overlay/AnimatedCatalogue.tsx",
     "src/ProjectSpotlight.tsx": "overlay/ProjectSpotlight.tsx",
-    "src/PhotographicMeadow.tsx": "overlay/PhotographicMeadow.tsx",
     "src/MeadowWorld.tsx": "overlay/MeadowWorld.tsx",
-    "src/MeadowEcology.tsx": "overlay/MeadowEcology.tsx",
+    "src/MeadowRain.tsx": "overlay/MeadowRain.tsx",
+    "src/meadowLayout.ts": "overlay/meadowLayout.ts",
+    "src/components/GrassField.tsx": "overlay/UnifiedGrassField.tsx",
 }
 here=Path(__file__).resolve().parent
 for dest,source in files.items():
     (repo/dest).write_text((here/source).read_text())
-print("Applied Serenity II: continuous meadow, living ecology, atmospheric weather and portfolio transitions.")
+print("Applied Serenity IV: unified grass bands, weather, and preserved portfolio.")
