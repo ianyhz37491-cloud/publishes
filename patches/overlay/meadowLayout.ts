@@ -1,6 +1,6 @@
 /** World-anchored, tapered sampling shared by every meadow quality preset.
  * Density changes gradually with ground distance; no square tile has a special edge.
- * The three bands are GPU instanced with one shading and wind implementation.
+ * The four bands are GPU instanced with one shading and wind implementation.
  */
 export type MeadowBand='near'|'bridge'|'middle'|'far';
 export type MeadowQuality='desktop'|'touch'|'low';

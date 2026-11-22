@@ -136,17 +136,22 @@ async function check(browser,name,device){
       // Orbit the real canvas, not the overlaid portfolio UI.
       await page.mouse.move(720,470);
       await page.mouse.down();
-      await page.mouse.move(1110,590,{steps:15});
+      await page.mouse.move(850,525,{steps:10});
       await page.mouse.up();
       await page.waitForTimeout(350);
       await page.screenshot({path:path.join(folder,name+'-meadow-low-orbit.png'),timeout:45000});
-      await page.mouse.move(720,450);
+      // Restore original target before the opposite orbit; huge successive
+      // drags previously placed the camera between blades, not above the field.
+      await page.getByRole('button',{name:/Field settings/}).click();
+      await page.getByRole('button',{name:'Reset camera'}).click();
+      await page.getByRole('button',{name:'Close settings'}).click();
+      await page.mouse.move(720,470);
       await page.mouse.down();
-      await page.mouse.move(360,290,{steps:14});
+      await page.mouse.move(610,425,{steps:10});
       await page.mouse.up();
       await page.waitForTimeout(350);
       await page.screenshot({path:path.join(folder,name+'-meadow-high-orbit.png'),timeout:45000});
-      await page.mouse.wheel(0,-380);
+      await page.mouse.wheel(0,-180);
       await page.waitForTimeout(350);
       await page.screenshot({path:path.join(folder,name+'-meadow-zoom.png'),timeout:45000});
     }
