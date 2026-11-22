@@ -118,6 +118,35 @@ jobs:
           done
           node ../tests/test-portfolio-browser.cjs
 
+      - name: Export downsized field screenshots for reviewer inspection
+        if: always()
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check "Pillow==11.2.1"
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import base64,io
+          targets=(
+            'desktop-meadow-default.png',
+            'desktop-meadow-low-orbit.png',
+            'desktop-meadow-high-orbit.png',
+            'desktop-meadow-zoom.png',
+            'mobile-meadow-default.png',
+          )
+          for name in targets:
+            file=Path('browser-artifacts')/name
+            if not file.exists():
+              print('FIELD_REVIEW_MISSING='+name,flush=True)
+              continue
+            with Image.open(file) as original:
+              preview=original.convert('RGB')
+            preview.thumbnail((850,560),Image.Resampling.LANCZOS)
+            data=io.BytesIO()
+            preview.save(data,format='JPEG',quality=61,optimize=True)
+            marker=name[:-4].replace('-','_').upper()
+            print('FIELD_REVIEW_'+marker+'='+base64.b64encode(data.getvalue()).decode(),flush=True)
+          PY
+
       - name: Upload browser QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
